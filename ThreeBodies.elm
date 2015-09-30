@@ -1,6 +1,11 @@
 module ThreeBodies where
 
-import Planet exposing (Planet)
+import Planet
+
+import StartApp
+import Effects exposing (Effects, Never)
+import Task
+import Time exposing (Time)
 
 import Html exposing (..)
 import Html.Events exposing (..)
@@ -11,14 +16,39 @@ import Color exposing (red, black)
 import Graphics.Element as G
 import Graphics.Collage as C
 
+import Signal exposing (Signal, Address)
 import String
 
-main =
+main = app.html
+
+port tasks : Signal (Task.Task Never ())
+port tasks = app.tasks
+
+app = StartApp.start { init = init, view = view, update = update, inputs = [ticker 0.5] }
+
+init = ( planets, Effects.none )
+
+update : Planet.Action -> List Planet.Model -> (List Planet.Model, Effects Planet.Action)
+update action planets =
+  let
+    updates = List.map (Planet.update action) planets
+    planets' = List.map (\(planet, _) -> planet) updates
+    effects = List.map (\(_, effect) -> effect) updates
+  in
+    ( planets', Effects.batch effects )
+
+view : Address Planet.Action -> List Planet.Model -> Html
+view _ planets =
   div [ containerStyle ]
       [ h1 [] [ text "The three body problem" ]
       , p  [] [ text problemDescription ]
-      , view planets
+      , planetCanvas planets
       ]
+
+ticker : Time -> Signal Planet.Action
+ticker dt =
+  Time.every (dt * Time.second)
+    |> Signal.map (\_ -> { dt = dt })
 
 containerStyle =
   style [ ("width",     "40em")
@@ -43,8 +73,8 @@ problemDescription =
    , "gravitation)." ]
 
 
-view : List Planet -> Html
-view planets =
+planetCanvas : List Planet.Model -> Html
+planetCanvas planets =
   let
     (width, height) = sizeOfCanvas 40 planets
   in
@@ -53,7 +83,7 @@ view planets =
       |> G.color black
       |> Html.fromElement
 
-sizeOfCanvas : Int -> List Planet -> (Int, Int)
+sizeOfCanvas : Int -> List Planet.Model -> (Int, Int)
 sizeOfCanvas margin planets =
   let
     absMaxOr default selector = planets

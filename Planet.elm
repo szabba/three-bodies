@@ -1,5 +1,7 @@
 module Planet
-  ( Planet, view ) where
+  ( Model, Action, update, view ) where
+
+import Effects exposing (Effects)
 
 import Html exposing (Html)
 import Html
@@ -9,9 +11,21 @@ import Graphics.Collage as C
 
 import Color exposing (red, black)
 
-type alias Planet = { x : Float, y : Float, mass : Float, radius : Float }
+type alias Model = { x : Float, y : Float, mass : Float, radius : Float }
 
-view : Planet -> C.Form
+type alias Action = { dt : Float }
+
+update : Action -> Model -> (Model, Effects Action)
+update {dt} planet =
+  let
+    { x, y } = planet
+  in
+    ( { planet | x <- x + 1.0 * dt
+               , y <- y - 1.0 * dt }
+    , Effects.none
+    )
+
+view : Model -> C.Form
 view planet =
   C.circle planet.radius
     |> C.filled red
