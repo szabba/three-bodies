@@ -97,6 +97,6 @@ sizeOfCanvas margin planets =
     ensureFit selector = absMaxOr 0.0 selector
       |> \maxAbsValue -> 2.0 * (maxAbsValue + maxRadius)
       |> ceiling
-      |> (\maxPos -> maxPos + margin)
+      |> \maxPos -> maxPos + margin
   in
     (ensureFit .x, ensureFit .y)
