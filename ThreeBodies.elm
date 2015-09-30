@@ -4,6 +4,7 @@ import Planet exposing (Planet)
 
 import Html exposing (..)
 import Html.Events exposing (..)
+import Html.Attributes exposing (style)
 
 import Color exposing (red, black)
 
@@ -13,11 +14,18 @@ import Graphics.Collage as C
 import String
 
 main =
-  div []
+  div [ containerStyle ]
       [ h1 [] [ text "The three body problem" ]
       , p  [] [ text problemDescription ]
       , view planets
       ]
+
+containerStyle =
+  style [ ("width",     "40em")
+        , ("font-family", "sans-serif")
+        , ("font-size", "11pt")
+        , ("margin", "0 auto")
+        ]
 
 planets =
   [ { x =   0.0, y = -20.0, mass = 10.0, radius = 30.0 }
