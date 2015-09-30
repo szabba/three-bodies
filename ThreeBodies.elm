@@ -1,6 +1,9 @@
 module ThreeBodies where
 
 import Planet
+import Vector exposing (Vector)
+
+import Debug exposing (log)
 
 import StartApp
 import Effects exposing (Effects, Never)
@@ -78,34 +81,47 @@ problemDescription =
    , " laws of classical mechanics (Newton's laws of motion and of universal "
    , "gravitation)." ]
 
-
 planetCanvas : List Planet.Model -> Html
 planetCanvas planets =
   let
-    (width, height) = sizeOfCanvas 40 planets
+    width = 600
+    height = 400
+    scaleBy = scaleFactor 10 (width, height) planets
+
+    planetShapes =
+      List.map Planet.view planets
+        |> C.group
+        |> C.scale scaleBy
   in
-    List.map Planet.view planets
+    [planetShapes]
       |> C.collage width height
       |> G.color black
       |> Html.fromElement
 
-sizeOfCanvas : Int -> List Planet.Model -> (Int, Int)
-sizeOfCanvas margin planets =
+scaleFactor : Int -> (Int, Int) -> List Planet.Model -> Float
+scaleFactor margin (width, height) planets =
   let
-    absMaxOr default selector = planets
-      |> List.map selector
-      |> List.map abs
-      |> List.maximum
-      |> Maybe.withDefault default
+    safeXRange = max 0 ((width - margin) // 2) |> toFloat
+    safeYRange = max 0 ((height - margin) // 2) |> toFloat
 
-    maxRadius = absMaxOr 0.0 .radius
+    maxRadius = absMaximum 0.0 .radius planets
 
-    ensureFit selector = absMaxOr 0.0 selector
-      |> \maxAbsValue -> 2.0 * (maxAbsValue + maxRadius)
-      |> ceiling
-      |> \maxPos -> maxPos + margin
+    maxDistanceFromCenter : (Vector -> Float) -> Float
+    maxDistanceFromCenter alongAxis =
+      absMaximum 0.0 (.position >> alongAxis) planets
 
-    width = ensureFit <| \planet -> planet.position.x
-    height = ensureFit <| \planet -> planet.position.y
+    scaleThatEnsuresFit : Float -> (Vector -> Float) -> Float
+    scaleThatEnsuresFit safeRange axis =
+      scaleToFrom safeRange <| maxDistanceFromCenter axis + maxRadius
   in
-    (width, height)
+    min (scaleThatEnsuresFit safeXRange .x) (scaleThatEnsuresFit safeYRange .y)
+
+scaleToFrom : Float -> Float -> Float
+scaleToFrom target origin = target / origin
+
+absMaximum : comparable -> (a -> comparable) -> List a -> comparable
+absMaximum zero f coll =
+  coll
+    |> List.map (f >> abs)
+    |> List.maximum
+    |> Maybe.withDefault zero

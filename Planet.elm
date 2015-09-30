@@ -20,7 +20,7 @@ type alias Action = { dt : Float }
 update : Action -> Model -> (Model, Effects Action)
 update {dt} planet =
   let
-    velocity = { x = 1.0, y = -1.0 }
+    velocity = { x = 10.0, y = -10.0 }
     displacement = Vector.scale dt velocity
     newPosition = planet.position `plus` displacement
   in
