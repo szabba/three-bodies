@@ -31,9 +31,9 @@ app = StartApp.start { init = init, view = view, update = update, inputs = [tick
 init = ( planets, Effects.none )
 
 planets =
-  [ { x =   0.0, y = -20.0, mass = 10.0, radius = 15.0 }
-  , { x = 100.0, y =   0.0, mass = 10.0, radius = 20.0 }
-  , { x = -70.0, y =  60.0, mass = 10.0, radius = 25.0 }
+  [ { position = { x =   0.0, y = -20.0 }, mass = 10.0, radius = 15.0 }
+  , { position = { x = 100.0, y =   0.0 }, mass = 10.0, radius = 20.0 }
+  , { position = { x = -70.0, y =  60.0 }, mass = 10.0, radius = 25.0 }
   ]
 
 ticker : Time -> Signal Planet.Action
@@ -104,5 +104,8 @@ sizeOfCanvas margin planets =
       |> \maxAbsValue -> 2.0 * (maxAbsValue + maxRadius)
       |> ceiling
       |> \maxPos -> maxPos + margin
+
+    width = ensureFit <| \planet -> planet.position.x
+    height = ensureFit <| \planet -> planet.position.y
   in
-    (ensureFit .x, ensureFit .y)
+    (width, height)

@@ -11,17 +11,20 @@ import Graphics.Collage as C
 
 import Color exposing (red, black)
 
-type alias Model = { x : Float, y : Float, mass : Float, radius : Float }
+import Vector exposing (Vector, plus)
+
+type alias Model = { position : Vector, mass : Float, radius : Float }
 
 type alias Action = { dt : Float }
 
 update : Action -> Model -> (Model, Effects Action)
 update {dt} planet =
   let
-    { x, y } = planet
+    velocity = { x = 1.0, y = -1.0 }
+    displacement = Vector.scale dt velocity
+    newPosition = planet.position `plus` displacement
   in
-    ( { planet | x <- x + 1.0 * dt
-               , y <- y - 1.0 * dt }
+    ( { planet | position <- newPosition }
     , Effects.none
     )
 
@@ -29,4 +32,4 @@ view : Model -> C.Form
 view planet =
   C.circle planet.radius
     |> C.filled red
-    |> C.move (planet.x, planet.y)
+    |> C.move (planet.position.x, planet.position.y)
