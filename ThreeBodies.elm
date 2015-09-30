@@ -24,13 +24,13 @@ containerStyle =
   style [ ("width",     "40em")
         , ("font-family", "sans-serif")
         , ("font-size", "11pt")
-        , ("margin", "0 auto")
+        , ("margin", "40pt auto")
         ]
 
 planets =
-  [ { x =   0.0, y = -20.0, mass = 10.0, radius = 30.0 }
-  , { x = 100.0, y =   0.0, mass = 10.0, radius = 30.0 }
-  , { x = -70.0, y =  60.0, mass = 10.0, radius = 30.0 }
+  [ { x =   0.0, y = -20.0, mass = 10.0, radius = 15.0 }
+  , { x = 100.0, y =   0.0, mass = 10.0, radius = 20.0 }
+  , { x = -70.0, y =  60.0, mass = 10.0, radius = 25.0 }
   ]
 
 problemDescription =
