@@ -1,6 +1,6 @@
 module ThreeBodies where
 
-import Planet
+import Planet exposing (Planet)
 
 import Html exposing (..)
 import Html.Events exposing (..)
@@ -16,13 +16,13 @@ main =
   div []
       [ h1 [] [ text "The three body problem" ]
       , p  [] [ text problemDescription ]
-      , Planet.view planets
+      , view planets
       ]
 
 planets =
-  [ { x =   0.0, y = -20.0, mass = 10.0, radius = 30.0}
-  , { x = 100.0, y =   0.0, mass = 10.0, radius = 30.0}
-  , { x = -70.0, y =  60.0, mass = 10.0, radius = 30.0}
+  [ { x =   0.0, y = -20.0, mass = 10.0, radius = 30.0 }
+  , { x = 100.0, y =   0.0, mass = 10.0, radius = 30.0 }
+  , { x = -70.0, y =  60.0, mass = 10.0, radius = 30.0 }
   ]
 
 problemDescription =
@@ -33,3 +33,32 @@ problemDescription =
    , "then determining the motions of the three bodies, in accordance with the"
    , " laws of classical mechanics (Newton's laws of motion and of universal "
    , "gravitation)." ]
+
+
+view : List Planet -> Html
+view planets =
+  let
+    (width, height) = sizeOfCanvas 40 planets
+  in
+    List.map Planet.view planets
+      |> C.collage width height
+      |> G.color black
+      |> Html.fromElement
+
+sizeOfCanvas : Int -> List Planet -> (Int, Int)
+sizeOfCanvas margin planets =
+  let
+    absMaxOr default selector = planets
+      |> List.map selector
+      |> List.map abs
+      |> List.maximum
+      |> Maybe.withDefault default
+
+    maxRadius = absMaxOr 0.0 .radius
+
+    ensureFit selector = absMaxOr 0.0 selector
+      |> \maxAbsValue -> 2.0 * (maxAbsValue + maxRadius)
+      |> ceiling
+      |> (\maxPos -> maxPos + margin)
+  in
+    (ensureFit .x, ensureFit .y)
