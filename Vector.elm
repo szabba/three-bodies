@@ -1,5 +1,7 @@
 module Vector
-  ( Vector, plus, minus, dot, scale, norm, toUnit ) where
+  ( Vector, zero, plus, minus, dot, scale, norm, toUnit, sum ) where
+
+import List
 
 type alias Vector = { x : Float, y : Float }
 
@@ -23,6 +25,9 @@ norm {x, y} = x * x + y * y |> sqrt
 
 toUnit : Vector -> Vector
 toUnit v = scale (1 / norm v) v
+
+sum : List Vector -> Vector
+sum vs = List.foldl plus zero vs
 
 infixl 6 `plus`
 infixl 6 `minus`
