@@ -29,7 +29,7 @@ port tasks : Signal (Task.Task Never ())
 port tasks = app.tasks
 
 app : StartApp.App (List Planet.Model)
-app = StartApp.start { init = init, view = view, update = update, inputs = [ticker 0.5] }
+app = StartApp.start { init = init, view = view, update = update, inputs = [ticker 0.05] }
 
 -- MODEL
 
