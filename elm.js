@@ -1800,6 +1800,107 @@ Elm.Dict.make = function (_elm) {
                       ,fromList: fromList};
    return _elm.Dict.values;
 };
+Elm.Dynamics = Elm.Dynamics || {};
+Elm.Dynamics.make = function (_elm) {
+   "use strict";
+   _elm.Dynamics = _elm.Dynamics || {};
+   if (_elm.Dynamics.values)
+   return _elm.Dynamics.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Dynamics",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm),
+   $Vector = Elm.Vector.make(_elm);
+   var move = F2(function (dt,
+   body) {
+      return function () {
+         var $ = body,
+         position = $.position,
+         velocity = $.velocity;
+         var displacement = A2($Vector.scale,
+         dt,
+         velocity);
+         var newPosition = A2($Vector.plus,
+         position,
+         displacement);
+         return _U.replace([["position"
+                            ,newPosition]],
+         body);
+      }();
+   });
+   var accelerate = F4(function (dt,
+   forceSource,
+   allBodies,
+   target) {
+      return function () {
+         var force = A2(forceSource,
+         allBodies,
+         target);
+         var $ = target,
+         mass = $.mass,
+         velocity = $.velocity;
+         var acceleration = A2($Vector.scale,
+         1 / mass,
+         force);
+         var speedup = A2($Vector.scale,
+         dt,
+         acceleration);
+         var newVelocity = A2($Vector.plus,
+         velocity,
+         speedup);
+         return _U.replace([["velocity"
+                            ,newVelocity]],
+         target);
+      }();
+   });
+   var update = F2(function (dt,
+   system) {
+      return function () {
+         var $ = system,
+         bodies = $.bodies,
+         forceSource = $.forceSource;
+         var acceleratedBodies = A2($List.map,
+         A3(accelerate,
+         dt,
+         forceSource,
+         bodies),
+         bodies);
+         var movedBodies = A2($List.map,
+         move(dt),
+         acceleratedBodies);
+         return _U.replace([["bodies"
+                            ,movedBodies]],
+         system);
+      }();
+   });
+   var Body = F4(function (a,
+   b,
+   c,
+   d) {
+      return _U.insert("velocity",
+      c,
+      _U.insert("position",
+      b,
+      _U.insert("mass",a,d)));
+   });
+   var System = F2(function (a,b) {
+      return {_: {}
+             ,bodies: a
+             ,forceSource: b};
+   });
+   _elm.Dynamics.values = {_op: _op
+                          ,update: update
+                          ,System: System
+                          ,Body: Body};
+   return _elm.Dynamics.values;
+};
 Elm.Effects = Elm.Effects || {};
 Elm.Effects.make = function (_elm) {
    "use strict";
@@ -2832,27 +2933,31 @@ Elm.Gravity.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Gravity",
    $Basics = Elm.Basics.make(_elm),
+   $Dynamics = Elm.Dynamics.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Planet = Elm.Planet.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Vector = Elm.Vector.make(_elm);
    var bigG = 6.674e-11;
-   var force = F2(function (on,
-   from) {
+   var forceFor = F2(function (target,
+   source) {
       return function () {
          var direction = A2($Vector.minus,
-         from.position,
-         on.position);
+         source.position,
+         target.position);
          var distance = $Vector.norm(direction);
-         var magnitude = bigG * from.mass * on.mass / Math.pow(distance,
+         var magnitude = bigG * source.mass * target.mass / Math.pow(distance,
          2);
-         return !_U.eq(from.position,
-         on.position) ? A2($Vector.scale,
+         return !_U.eq(source.position,
+         target.position) ? A2($Vector.scale,
          magnitude,
          direction) : $Vector.zero;
       }();
+   });
+   var force = F2(function (bodies,
+   target) {
+      return $Vector.sum($List.map(forceFor(target))(bodies));
    });
    _elm.Gravity.values = {_op: _op
                          ,force: force};
@@ -12183,54 +12288,19 @@ Elm.Planet.make = function (_elm) {
    $moduleName = "Planet",
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
+   $Dynamics = Elm.Dynamics.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $Vector = Elm.Vector.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var view = function (planet) {
       return $Graphics$Collage.move({ctor: "_Tuple2"
                                     ,_0: planet.position.x
                                     ,_1: planet.position.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(planet.radius)));
    };
-   var update = F2(function (_v0,
-   planet) {
-      return function () {
-         return function () {
-            var $ = planet,
-            position = $.position,
-            velocity = $.velocity;
-            var displacement = A2($Vector.scale,
-            _v0.dt,
-            velocity);
-            var newPosition = A2($Vector.plus,
-            position,
-            displacement);
-            return _U.replace([["position"
-                               ,newPosition]],
-            planet);
-         }();
-      }();
-   });
-   var Action = function (a) {
-      return {_: {},dt: a};
-   };
-   var Model = F4(function (a,
-   b,
-   c,
-   d) {
-      return {_: {}
-             ,mass: c
-             ,position: a
-             ,radius: d
-             ,velocity: b};
-   });
    _elm.Planet.values = {_op: _op
-                        ,update: update
-                        ,view: view
-                        ,Model: Model
-                        ,Action: Action};
+                        ,view: view};
    return _elm.Planet.values;
 };
 Elm.Result = Elm.Result || {};
@@ -13155,7 +13225,7 @@ Elm.ThreeBodies.make = function (_elm) {
    $moduleName = "ThreeBodies",
    $Basics = Elm.Basics.make(_elm),
    $Color = Elm.Color.make(_elm),
-   $Debug = Elm.Debug.make(_elm),
+   $Dynamics = Elm.Dynamics.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
@@ -13229,7 +13299,7 @@ Elm.ThreeBodies.make = function (_elm) {
                  }));
               }();}
          _U.badCase($moduleName,
-         "between lines 146 and 160");
+         "between lines 132 and 146");
       }();
    });
    var planetCanvas = function (planets) {
@@ -13269,20 +13339,23 @@ Elm.ThreeBodies.make = function (_elm) {
                                                              ,_0: "margin"
                                                              ,_1: "40pt auto"}]));
    var view = F2(function (_v4,
-   planets) {
+   system) {
       return function () {
-         return A2($Html.div,
-         _L.fromArray([containerStyle]),
-         _L.fromArray([A2($Html.h1,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text("The three body problem")]))
-                      ,A2($Html.p,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text(problemDescription)]))
-                      ,planetCanvas(planets)
-                      ,A2($Html.p,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text($Basics.toString(planets))]))]));
+         return function () {
+            var planets = system.bodies;
+            return A2($Html.div,
+            _L.fromArray([containerStyle]),
+            _L.fromArray([A2($Html.h1,
+                         _L.fromArray([]),
+                         _L.fromArray([$Html.text("The three body problem")]))
+                         ,A2($Html.p,
+                         _L.fromArray([]),
+                         _L.fromArray([$Html.text(problemDescription)]))
+                         ,planetCanvas(planets)
+                         ,A2($Html.p,
+                         _L.fromArray([]),
+                         _L.fromArray([$Html.text($Basics.toString(planets))]))]));
+         }();
       }();
    });
    var zip = F2(function (first,
@@ -13306,56 +13379,19 @@ Elm.ThreeBodies.make = function (_elm) {
          return _L.fromArray([]);
       }();
    });
-   var update = F2(function (action,
-   planets) {
+   var update = F2(function (dt,
+   system) {
       return function () {
-         var forceOn = function (planet) {
-            return $Debug.log(A2($Basics._op["++"],
-            "force on ",
-            $Basics.toString(planet)))($Vector.sum($List.map($Gravity.force(planet))(planets)));
-         };
-         var accelerationOf = function (planet) {
-            return $Debug.log(A2($Basics._op["++"],
-            "acceleration of ",
-            $Basics.toString(planet)))($Vector.scale(1 / planet.mass)(forceOn(planet)));
-         };
-         var accelerate = function (planet) {
-            return function () {
-               var acceleration = accelerationOf(planet);
-               var $ = planet,
-               velocity = $.velocity;
-               var $ = action,dt = $.dt;
-               var newVelocity = A2($Vector.plus,
-               velocity,
-               A2($Vector.scale,
-               dt,
-               acceleration));
-               return $Debug.log(A2($Basics._op["++"],
-               "accelerated ",
-               A2($Basics._op["++"],
-               $Basics.toString(planet),
-               " is")))(_U.replace([["velocity"
-                                    ,newVelocity]],
-               planet));
-            }();
-         };
-         var acceleratedPlanets = A2($List.map,
-         accelerate,
-         planets);
-         var movedPlanets = $Debug.log("the moved planets are")(A2($List.map,
-         $Planet.update(action),
-         acceleratedPlanets));
+         var updatedSystem = A2($Dynamics.update,
+         dt,
+         system);
          return {ctor: "_Tuple2"
-                ,_0: movedPlanets
+                ,_0: updatedSystem
                 ,_1: $Effects.none};
       }();
    });
    var ticker = function (dt) {
-      return $Signal.map(function (_v13) {
-         return function () {
-            return {_: {},dt: dt};
-         }();
-      })($Time.every(dt * $Time.second));
+      return $Signal.map($Basics.always(dt))($Time.every(dt * $Time.second));
    };
    var planets = _L.fromArray([{_: {}
                                ,mass: 1.0e15
@@ -13378,8 +13414,11 @@ Elm.ThreeBodies.make = function (_elm) {
                                           ,y: 60.0}
                                ,radius: 25.0
                                ,velocity: $Vector.zero}]);
+   var system = {_: {}
+                ,bodies: planets
+                ,forceSource: $Gravity.force};
    var init = {ctor: "_Tuple2"
-              ,_0: planets
+              ,_0: system
               ,_1: $Effects.none};
    var app = $StartApp.start({_: {}
                              ,init: init
@@ -13393,6 +13432,7 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,main: main
                              ,app: app
                              ,init: init
+                             ,system: system
                              ,planets: planets
                              ,ticker: ticker
                              ,update: update
