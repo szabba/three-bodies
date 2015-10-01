@@ -1,16 +1,22 @@
 module Gravity (force) where
 
-import Planet
+import Dynamics exposing (ForceSource, Body)
 import Vector exposing (Vector, minus)
 
-force : Planet.Model -> Planet.Model -> Vector
-force on from =
+force : ForceSource a
+force bodies target =
+  bodies
+    |> List.map (forceFor target)
+    |> Vector.sum
+
+forceFor : Body a -> Body a -> Vector
+forceFor target source =
   let
-    direction = from.position `minus` on.position
+    direction = source.position `minus` target.position
     distance = Vector.norm direction
-    magnitude = bigG * from.mass * on.mass / distance ^ 2
+    magnitude = bigG * source.mass * target.mass / distance ^ 2
   in
-    if from.position /= on.position then
+    if source.position /= target.position then
       Vector.scale magnitude direction
     else
       Vector.zero

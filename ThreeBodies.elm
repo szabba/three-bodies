@@ -1,10 +1,9 @@
 module ThreeBodies where
 
-import Planet
+import Dynamics
+import Planet exposing (Planet)
 import Gravity
 import Vector exposing (Vector, plus)
-
-import Debug exposing (log)
 
 import StartApp
 import Effects exposing (Effects, Never)
@@ -28,15 +27,21 @@ main = app.html
 port tasks : Signal (Task.Task Never ())
 port tasks = app.tasks
 
-app : StartApp.App (List Planet.Model)
+app : StartApp.App Planet.System
 app = StartApp.start { init = init, view = view, update = update, inputs = [ticker 0.05] }
 
 -- MODEL
 
-init : (List Planet.Model, Effects a)
-init = ( planets, Effects.none )
+init : (Planet.System, Effects a)
+init = ( system, Effects.none )
 
-planets : List Planet.Model
+system : Planet.System
+system =
+  { bodies = planets
+  , forceSource = Gravity.force
+  }
+
+planets : List Planet
 planets =
   [ { position = { x = 0.0, y = -20.0 }
     , velocity = Vector.zero
@@ -52,42 +57,20 @@ planets =
     , radius = 25.0 }
   ]
 
-ticker : Time -> Signal Planet.Action
+ticker : Time -> Signal Time
 ticker dt =
-  Time.every (dt * Time.second)
-    |> Signal.map (\_ -> { dt = dt })
+  dt * Time.second
+    |> Time.every
+    |> Signal.map (always dt)
 
 -- UPDATE
 
-update : Planet.Action -> List Planet.Model -> (List Planet.Model, Effects Planet.Action)
-update action planets =
+update : Time -> Planet.System -> (Planet.System, Effects Time)
+update dt system =
   let
-    forceOn planet =
-      planets
-        |> List.map (Gravity.force planet)
-        |> Vector.sum
-        |> log ("force on " ++ toString planet)
-
-    accelerationOf planet =
-      forceOn planet
-        |> Vector.scale (1 / planet.mass)
-        |> log ("acceleration of " ++ toString planet)
-
-    accelerate planet =
-      let
-        {dt} = action
-        {velocity} = planet
-        acceleration = accelerationOf planet
-        newVelocity = velocity `plus` Vector.scale dt acceleration
-      in
-        { planet | velocity <- newVelocity }
-          |> log ("accelerated " ++ toString planet ++ " is")
-
-    acceleratedPlanets = List.map accelerate planets
-    movedPlanets = List.map (Planet.update action) acceleratedPlanets
-      |> log ("the moved planets are")
+    updatedSystem = Dynamics.update dt system
   in
-    ( movedPlanets, Effects.none )
+    (updatedSystem, Effects.none)
 
 zip : List a -> List b -> List (a, b)
 zip first second =
@@ -97,14 +80,17 @@ zip first second =
 
 -- VIEW
 
-view : Address Planet.Action -> List Planet.Model -> Html
-view _ planets =
-  div [ containerStyle ]
-      [ h1 [] [ text "The three body problem" ]
-      , p  [] [ text problemDescription ]
-      , planetCanvas planets
-      , p  [] [ text <| toString planets ]
-      ]
+view : Address Time -> Planet.System -> Html
+view _ system =
+  let
+    planets = system.bodies
+  in
+    div [ containerStyle ]
+        [ h1 [] [ text "The three body problem" ]
+        , p  [] [ text problemDescription ]
+        , planetCanvas planets
+        , p  [] [ text <| toString planets ]
+        ]
 
 containerStyle : Attribute
 containerStyle =
@@ -124,7 +110,7 @@ problemDescription =
    , " laws of classical mechanics (Newton's laws of motion and of universal "
    , "gravitation)." ]
 
-planetCanvas : List Planet.Model -> Html
+planetCanvas : List Planet -> Html
 planetCanvas planets =
   let
     width = 600
@@ -141,7 +127,7 @@ planetCanvas planets =
       |> G.color black
       |> Html.fromElement
 
-scaleFactor : Int -> (Int, Int) -> List Planet.Model -> Float
+scaleFactor : Int -> (Int, Int) -> List Planet -> Float
 scaleFactor margin (width, height) planets =
   let
     safeXRange = max 0 ((width - margin) // 2) |> toFloat
