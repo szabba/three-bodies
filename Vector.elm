@@ -1,5 +1,5 @@
 module Vector
-  ( Vector, plus, minus, dot, scale ) where
+  ( Vector, plus, minus, dot, scale, norm, toUnit ) where
 
 type alias Vector = { x : Float, y : Float }
 
@@ -17,6 +17,12 @@ dot a b = { x = a.x * b.x, y = a.y * b.y }
 
 scale : Float -> Vector -> Vector
 scale by {x, y} = { x = by * x, y = by * y }
+
+norm : Vector -> Float
+norm {x, y} = x * x + y * y |> sqrt
+
+toUnit : Vector -> Vector
+toUnit v = scale (1 / norm v) v
 
 infixl 6 `plus`
 infixl 6 `minus`

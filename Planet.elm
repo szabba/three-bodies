@@ -13,16 +13,16 @@ import Color exposing (red, black)
 
 import Vector exposing (Vector, plus)
 
-type alias Model = { position : Vector, mass : Float, radius : Float }
+type alias Model = { position : Vector, velocity : Vector, mass : Float, radius : Float }
 
 type alias Action = { dt : Float }
 
 update : Action -> Model -> (Model, Effects Action)
 update {dt} planet =
   let
-    velocity = { x = 10.0, y = -10.0 }
+    {position, velocity} = planet
     displacement = Vector.scale dt velocity
-    newPosition = planet.position `plus` displacement
+    newPosition = position `plus` displacement
   in
     ( { planet | position <- newPosition }
     , Effects.none
