@@ -4,8 +4,6 @@ module Dynamics
 import Vector exposing (Vector, plus)
 import Time exposing (Time)
 
-import Debug exposing (log)
-
 type alias System a =
   { bodies : List (Body a)
   , forceSource : ForceSource a

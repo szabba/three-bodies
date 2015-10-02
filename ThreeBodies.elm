@@ -5,6 +5,9 @@ import Planet exposing (Planet)
 import Gravity
 import Vector exposing (Vector, plus)
 
+import Planet.Scale as PS
+import Scale
+
 import StartApp
 import Effects exposing (Effects, Never)
 import Task
@@ -82,15 +85,12 @@ zip first second =
 
 view : Address Time -> Planet.System -> Html
 view _ system =
-  let
-    planets = system.bodies
-  in
-    div [ containerStyle ]
-        [ h1 [] [ text "The three body problem" ]
-        , p  [] [ text problemDescription ]
-        , planetCanvas planets
-        , p  [] [ text <| toString planets ]
-        ]
+  div [ containerStyle ]
+      [ h1 [] [ text "The three body problem" ]
+      , p  [] [ text problemDescription ]
+      , planetCanvas system
+      , p  [] [ text <| toString system.bodies ]
+      ]
 
 containerStyle : Attribute
 containerStyle =
@@ -110,15 +110,16 @@ problemDescription =
    , " laws of classical mechanics (Newton's laws of motion and of universal "
    , "gravitation)." ]
 
-planetCanvas : List Planet -> Html
-planetCanvas planets =
+planetCanvas : Planet.System -> Html
+planetCanvas system =
   let
     width = 600
     height = 400
-    scaleBy = scaleFactor 10 (width, height) planets
+    margin = 30
+    scaleBy = scaleFactor margin (width, height) system
 
     planetShapes =
-      List.map Planet.view planets
+      List.map Planet.view system.bodies
         |> C.group
         |> C.scale scaleBy
   in
@@ -127,30 +128,10 @@ planetCanvas planets =
       |> G.color black
       |> Html.fromElement
 
-scaleFactor : Int -> (Int, Int) -> List Planet -> Float
-scaleFactor margin (width, height) planets =
+scaleFactor : Int -> (Int, Int) -> Planet.System -> Float
+scaleFactor margin targetDimmensions system =
   let
-    safeXRange = max 0 ((width - margin) // 2) |> toFloat
-    safeYRange = max 0 ((height - margin) // 2) |> toFloat
-
-    maxRadius = absMaximum 0.0 .radius planets
-
-    maxDistanceFromCenter : (Vector -> Float) -> Float
-    maxDistanceFromCenter alongAxis =
-      absMaximum 0.0 (.position >> alongAxis) planets
-
-    scaleThatEnsuresFit : Float -> (Vector -> Float) -> Float
-    scaleThatEnsuresFit safeRange axis =
-      scaleToFrom safeRange <| maxDistanceFromCenter axis + maxRadius
+    marginFactor = Scale.addMargin margin targetDimmensions
+    fitFactor = Scale.fitWithMeter PS.meter targetDimmensions system
   in
-    min (scaleThatEnsuresFit safeXRange .x) (scaleThatEnsuresFit safeYRange .y)
-
-scaleToFrom : Float -> Float -> Float
-scaleToFrom target origin = target / origin
-
-absMaximum : comparable -> (a -> comparable) -> List a -> comparable
-absMaximum zero f coll =
-  coll
-    |> List.map (f >> abs)
-    |> List.maximum
-    |> Maybe.withDefault zero
+    marginFactor * fitFactor

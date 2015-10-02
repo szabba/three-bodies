@@ -12303,6 +12303,75 @@ Elm.Planet.make = function (_elm) {
                         ,view: view};
    return _elm.Planet.values;
 };
+Elm.Planet = Elm.Planet || {};
+Elm.Planet.Scale = Elm.Planet.Scale || {};
+Elm.Planet.Scale.make = function (_elm) {
+   "use strict";
+   _elm.Planet = _elm.Planet || {};
+   _elm.Planet.Scale = _elm.Planet.Scale || {};
+   if (_elm.Planet.Scale.values)
+   return _elm.Planet.Scale.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Planet.Scale",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Planet = Elm.Planet.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Scale = Elm.Scale.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Vector = Elm.Vector.make(_elm);
+   var absMaximum = F2(function (zero,
+   coll) {
+      return $Maybe.withDefault(zero)($List.maximum($List.map($Basics.abs)(coll)));
+   });
+   var reaches = F2(function (along,
+   planet) {
+      return function () {
+         var $ = planet,
+         position = $.position,
+         radius = $.radius;
+         var coordinate = along(position);
+         var sign = _U.cmp(coordinate,
+         0) < 0 ? -1 : 1;
+         return sign * radius + coordinate;
+      }();
+   });
+   var meter = function (system) {
+      return function () {
+         var dimmensionAlongAxisWithCoordinates = function (coordinates) {
+            return function (half) {
+               return 2 * half;
+            }(absMaximum(0)(coordinates));
+         };
+         var ys = A2($List.map,
+         function ($) {
+            return $Basics.ceiling(reaches(function (_) {
+               return _.y;
+            })($));
+         },
+         system.bodies);
+         var height = dimmensionAlongAxisWithCoordinates(ys);
+         var xs = A2($List.map,
+         function ($) {
+            return $Basics.ceiling(reaches(function (_) {
+               return _.x;
+            })($));
+         },
+         system.bodies);
+         var width = dimmensionAlongAxisWithCoordinates(xs);
+         return {ctor: "_Tuple2"
+                ,_0: width
+                ,_1: height};
+      }();
+   };
+   _elm.Planet.Scale.values = {_op: _op
+                              ,meter: meter};
+   return _elm.Planet.Scale.values;
+};
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
    "use strict";
@@ -12546,6 +12615,66 @@ Elm.Result.make = function (_elm) {
                         ,Ok: Ok
                         ,Err: Err};
    return _elm.Result.values;
+};
+Elm.Scale = Elm.Scale || {};
+Elm.Scale.make = function (_elm) {
+   "use strict";
+   _elm.Scale = _elm.Scale || {};
+   if (_elm.Scale.values)
+   return _elm.Scale.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Scale",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var fit = F2(function (source,
+   target) {
+      return function () {
+         var $ = target,
+         targetWidth = $._0,
+         targetHeight = $._1;
+         var $ = source,
+         sourceWidth = $._0,
+         sourceHeight = $._1;
+         var xFactor = $Basics.toFloat(targetWidth) / $Basics.toFloat(sourceWidth);
+         var yFactor = $Basics.toFloat(targetHeight) / $Basics.toFloat(sourceHeight);
+         return A2($Basics.min,
+         xFactor,
+         yFactor);
+      }();
+   });
+   var addMargin = F2(function (margin,
+   dimmensions) {
+      return function () {
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
+         var safeWidth = width - 2 * margin;
+         var safeHeight = height - 2 * margin;
+         return A2(fit,
+         dimmensions,
+         {ctor: "_Tuple2"
+         ,_0: safeWidth
+         ,_1: safeHeight});
+      }();
+   });
+   var fitWithMeter = F3(function (sizer,
+   dimmensions,
+   obj) {
+      return A2(fit,
+      sizer(obj),
+      dimmensions);
+   });
+   _elm.Scale.values = {_op: _op
+                       ,fitWithMeter: fitWithMeter
+                       ,addMargin: addMargin
+                       ,fit: fit};
+   return _elm.Scale.values;
 };
 Elm.Signal = Elm.Signal || {};
 Elm.Signal.make = function (_elm) {
@@ -13235,86 +13364,43 @@ Elm.ThreeBodies.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Planet = Elm.Planet.make(_elm),
+   $Planet$Scale = Elm.Planet.Scale.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Scale = Elm.Scale.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm),
    $Vector = Elm.Vector.make(_elm);
-   var absMaximum = F3(function (zero,
-   f,
-   coll) {
-      return $Maybe.withDefault(zero)($List.maximum($List.map(function ($) {
-         return $Basics.abs(f($));
-      })(coll)));
-   });
-   var scaleToFrom = F2(function (target,
-   origin) {
-      return target / origin;
-   });
    var scaleFactor = F3(function (margin,
-   _v0,
-   planets) {
+   targetDimmensions,
+   system) {
       return function () {
-         switch (_v0.ctor)
-         {case "_Tuple2":
-            return function () {
-                 var maxDistanceFromCenter = function (alongAxis) {
-                    return A3(absMaximum,
-                    0.0,
-                    function ($) {
-                       return alongAxis(function (_) {
-                          return _.position;
-                       }($));
-                    },
-                    planets);
-                 };
-                 var maxRadius = A3(absMaximum,
-                 0.0,
-                 function (_) {
-                    return _.radius;
-                 },
-                 planets);
-                 var scaleThatEnsuresFit = F2(function (safeRange,
-                 axis) {
-                    return scaleToFrom(safeRange)(maxDistanceFromCenter(axis) + maxRadius);
-                 });
-                 var safeYRange = $Basics.toFloat(A2($Basics.max,
-                 0,
-                 (_v0._1 - margin) / 2 | 0));
-                 var safeXRange = $Basics.toFloat(A2($Basics.max,
-                 0,
-                 (_v0._0 - margin) / 2 | 0));
-                 return A2($Basics.min,
-                 A2(scaleThatEnsuresFit,
-                 safeXRange,
-                 function (_) {
-                    return _.x;
-                 }),
-                 A2(scaleThatEnsuresFit,
-                 safeYRange,
-                 function (_) {
-                    return _.y;
-                 }));
-              }();}
-         _U.badCase($moduleName,
-         "between lines 132 and 146");
+         var fitFactor = A3($Scale.fitWithMeter,
+         $Planet$Scale.meter,
+         targetDimmensions,
+         system);
+         var marginFactor = A2($Scale.addMargin,
+         margin,
+         targetDimmensions);
+         return marginFactor * fitFactor;
       }();
    });
-   var planetCanvas = function (planets) {
+   var planetCanvas = function (system) {
       return function () {
+         var margin = 30;
          var height = 400;
          var width = 600;
          var scaleBy = A3(scaleFactor,
-         10,
+         margin,
          {ctor: "_Tuple2"
          ,_0: width
          ,_1: height},
-         planets);
+         system);
          var planetShapes = $Graphics$Collage.scale(scaleBy)($Graphics$Collage.group(A2($List.map,
          $Planet.view,
-         planets)));
+         system.bodies)));
          return $Html.fromElement($Graphics$Element.color($Color.black)(A2($Graphics$Collage.collage,
          width,
          height)(_L.fromArray([planetShapes]))));
@@ -13338,42 +13424,39 @@ Elm.ThreeBodies.make = function (_elm) {
                                                             ,{ctor: "_Tuple2"
                                                              ,_0: "margin"
                                                              ,_1: "40px auto"}]));
-   var view = F2(function (_v4,
+   var view = F2(function (_v0,
    system) {
       return function () {
-         return function () {
-            var planets = system.bodies;
-            return A2($Html.div,
-            _L.fromArray([containerStyle]),
-            _L.fromArray([A2($Html.h1,
-                         _L.fromArray([]),
-                         _L.fromArray([$Html.text("The three body problem")]))
-                         ,A2($Html.p,
-                         _L.fromArray([]),
-                         _L.fromArray([$Html.text(problemDescription)]))
-                         ,planetCanvas(planets)
-                         ,A2($Html.p,
-                         _L.fromArray([]),
-                         _L.fromArray([$Html.text($Basics.toString(planets))]))]));
-         }();
+         return A2($Html.div,
+         _L.fromArray([containerStyle]),
+         _L.fromArray([A2($Html.h1,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text("The three body problem")]))
+                      ,A2($Html.p,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text(problemDescription)]))
+                      ,planetCanvas(system)
+                      ,A2($Html.p,
+                      _L.fromArray([]),
+                      _L.fromArray([$Html.text($Basics.toString(system.bodies))]))]));
       }();
    });
    var zip = F2(function (first,
    second) {
       return function () {
-         var _v6 = {ctor: "_Tuple2"
+         var _v2 = {ctor: "_Tuple2"
                    ,_0: first
                    ,_1: second};
-         switch (_v6.ctor)
+         switch (_v2.ctor)
          {case "_Tuple2":
-            switch (_v6._0.ctor)
-              {case "::": switch (_v6._1.ctor)
+            switch (_v2._0.ctor)
+              {case "::": switch (_v2._1.ctor)
                    {case "::":
                       return A2($List._op["::"],
                         {ctor: "_Tuple2"
-                        ,_0: _v6._0._0
-                        ,_1: _v6._1._0},
-                        A2(zip,_v6._0._1,_v6._1._1));}
+                        ,_0: _v2._0._0
+                        ,_1: _v2._1._0},
+                        A2(zip,_v2._0._1,_v2._1._1));}
                    break;}
               break;}
          return _L.fromArray([]);
@@ -13441,9 +13524,7 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,containerStyle: containerStyle
                              ,problemDescription: problemDescription
                              ,planetCanvas: planetCanvas
-                             ,scaleFactor: scaleFactor
-                             ,scaleToFrom: scaleToFrom
-                             ,absMaximum: absMaximum};
+                             ,scaleFactor: scaleFactor};
    return _elm.ThreeBodies.values;
 };
 Elm.Time = Elm.Time || {};
