@@ -96,8 +96,8 @@ containerStyle : Attribute
 containerStyle =
   style [ ("width",     "40em")
         , ("font-family", "sans-serif")
-        , ("font-size", "11pt")
-        , ("margin", "40pt auto")
+        , ("font-size", "15px")
+        , ("margin", "40px auto")
         ]
 
 problemDescription : String

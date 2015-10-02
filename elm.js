@@ -13334,10 +13334,10 @@ Elm.ThreeBodies.make = function (_elm) {
                                                              ,_1: "sans-serif"}
                                                             ,{ctor: "_Tuple2"
                                                              ,_0: "font-size"
-                                                             ,_1: "11pt"}
+                                                             ,_1: "15px"}
                                                             ,{ctor: "_Tuple2"
                                                              ,_0: "margin"
-                                                             ,_1: "40pt auto"}]));
+                                                             ,_1: "40px auto"}]));
    var view = F2(function (_v4,
    system) {
       return function () {
