@@ -4110,6 +4110,42 @@ Elm.Json.Encode.make = function (_elm) {
                              ,Value: Value};
    return _elm.Json.Encode.values;
 };
+Elm.Layout = Elm.Layout || {};
+Elm.Layout.Footer = Elm.Layout.Footer || {};
+Elm.Layout.Footer.make = function (_elm) {
+   "use strict";
+   _elm.Layout = _elm.Layout || {};
+   _elm.Layout.Footer = _elm.Layout.Footer || {};
+   if (_elm.Layout.Footer.values)
+   return _elm.Layout.Footer.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Layout.Footer",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var gravatarURL = "http://www.gravatar.com/avatar/c883fb6c6f1304c1b4b6eb1b0147b792?s=80&d=mm";
+   var avatarSize = 80;
+   var avatar = A2($Html.img,
+   _L.fromArray([$Html$Attributes.id("avatar")
+                ,$Html$Attributes.src(gravatarURL)
+                ,$Html$Attributes.alt("avatar")
+                ,$Html$Attributes.width(avatarSize)
+                ,$Html$Attributes.height(avatarSize)]),
+   _L.fromArray([]));
+   var view = A2($Html.div,
+   _L.fromArray([$Html$Attributes.id("footer")]),
+   _L.fromArray([avatar]));
+   _elm.Layout.Footer.values = {_op: _op
+                               ,view: view};
+   return _elm.Layout.Footer.values;
+};
 Elm.List = Elm.List || {};
 Elm.List.make = function (_elm) {
    "use strict";
@@ -13579,6 +13615,7 @@ Elm.ThreeBodies.make = function (_elm) {
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
+   $Layout$Footer = Elm.Layout.Footer.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
@@ -13607,18 +13644,6 @@ Elm.ThreeBodies.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
-   var gravatarURL = "http://www.gravatar.com/avatar/c883fb6c6f1304c1b4b6eb1b0147b792?s=80&d=mm";
-   var avatarSize = 80;
-   var avatar = A2($Html.img,
-   _L.fromArray([$Html$Attributes.id("avatar")
-                ,$Html$Attributes.src(gravatarURL)
-                ,$Html$Attributes.alt("avatar")
-                ,$Html$Attributes.width(avatarSize)
-                ,$Html$Attributes.height(avatarSize)]),
-   _L.fromArray([]));
-   var authorFooter = A2($Html.div,
-   _L.fromArray([$Html$Attributes.id("footer")]),
-   _L.fromArray([avatar]));
    var view = F2(function (address,
    model) {
       return function () {
@@ -13642,7 +13667,7 @@ Elm.ThreeBodies.make = function (_elm) {
                       _L.fromArray([A2(pauseButton,
                       address,
                       model.paused)]))
-                      ,authorFooter]));
+                      ,$Layout$Footer.view]));
       }();
    });
    var update = F2(function (action,
@@ -13708,10 +13733,6 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,ticker: ticker
                              ,update: update
                              ,view: view
-                             ,authorFooter: authorFooter
-                             ,avatar: avatar
-                             ,avatarSize: avatarSize
-                             ,gravatarURL: gravatarURL
                              ,pauseButton: pauseButton
                              ,problemDescription: problemDescription};
    return _elm.ThreeBodies.values;
