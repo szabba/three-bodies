@@ -1,0 +1,23 @@
+body {
+        font-family: "'Lucida Grande','Trebuchet MS','Bitstream Vera Sans',Verdana,Helvetica,sans-serif";
+        font-size: 15px !important;
+}
+
+a {
+        color: #1184CE;
+        text-decoration: none;
+}
+
+a:hover {
+        text-decoration: underline;
+        color: rgb(234,21,122);
+}
+
+h1 {
+        font-weight: normal;
+        font-family: futura, 'century gothic', 'twentieth century', calibri, verdana, helvetica, arial;
+}
+
+p, li {
+        line-height: 1.5em !important;
+}

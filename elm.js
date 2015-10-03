@@ -13592,12 +13592,6 @@ Elm.ThreeBodies.make = function (_elm) {
                                                              ,_0: "width"
                                                              ,_1: "40em"}
                                                             ,{ctor: "_Tuple2"
-                                                             ,_0: "font-family"
-                                                             ,_1: "sans-serif"}
-                                                            ,{ctor: "_Tuple2"
-                                                             ,_0: "font-size"
-                                                             ,_1: "15px"}
-                                                            ,{ctor: "_Tuple2"
                                                              ,_0: "margin"
                                                              ,_1: "40px auto"}]));
    var pauseButton = F2(function (address,

@@ -137,9 +137,7 @@ pauseButton address paused =
 
 containerStyle : Attribute
 containerStyle =
-  style [ ("width",     "40em")
-        , ("font-family", "sans-serif")
-        , ("font-size", "15px")
+  style [ ("width", "40em")
         , ("margin", "40px auto")
         ]
 
