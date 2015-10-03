@@ -1,5 +1,5 @@
 module Planet.Scale
-  (meter) where
+  ( meter ) where
 
 import Planet exposing (Planet, System)
 import Vector exposing (Vector)

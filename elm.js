@@ -1860,6 +1860,41 @@ Elm.Dynamics.make = function (_elm) {
          target);
       }();
    });
+   var weightPosition = function (body) {
+      return A2($Vector.scale,
+      body.mass,
+      body.position);
+   };
+   var findCenterOfMass = function (bodies) {
+      return function () {
+         var totalMass = $List.sum(A2($List.map,
+         function (_) {
+            return _.mass;
+         },
+         bodies));
+         return $Vector.scale(1 / totalMass)($Vector.sum($List.map(weightPosition)(bodies)));
+      }();
+   };
+   var recenterMass = function (system) {
+      return function () {
+         var $ = system,
+         bodies = $.bodies;
+         var centerOfMass = findCenterOfMass(bodies);
+         var recenter = function (body) {
+            return _U.replace([["position"
+                               ,A2($Vector.minus,
+                               body.position,
+                               centerOfMass)]],
+            body);
+         };
+         var movedBodies = A2($List.map,
+         recenter,
+         bodies);
+         return _U.replace([["bodies"
+                            ,movedBodies]],
+         system);
+      }();
+   };
    var update = F2(function (dt,
    system) {
       return function () {
@@ -1897,6 +1932,7 @@ Elm.Dynamics.make = function (_elm) {
    });
    _elm.Dynamics.values = {_op: _op
                           ,update: update
+                          ,recenterMass: recenterMass
                           ,System: System
                           ,Body: Body};
    return _elm.Dynamics.values;
@@ -13640,11 +13676,11 @@ Elm.ThreeBodies.make = function (_elm) {
       })($Time.every(dt * $Time.second));
    };
    var planets = _L.fromArray([{_: {}
-                               ,mass: 1.0e15
+                               ,mass: 5.0e15
                                ,position: {_: {}
                                           ,x: 0.0
                                           ,y: -20.0}
-                               ,radius: 15.0
+                               ,radius: 50.0
                                ,velocity: $Vector.zero}
                               ,{_: {}
                                ,mass: 1.0e15
@@ -13658,14 +13694,18 @@ Elm.ThreeBodies.make = function (_elm) {
                                ,position: {_: {}
                                           ,x: -70.0
                                           ,y: 60.0}
-                               ,radius: 25.0
+                               ,radius: 20.0
                                ,velocity: $Vector.zero}]);
    var system = {_: {}
                 ,bodies: planets
                 ,forceSource: $Gravity.force};
    var init = {ctor: "_Tuple2"
               ,_0: A2($Pause.active,
-              $Dynamics.update,
+              function (dt) {
+                 return function ($) {
+                    return $Dynamics.recenterMass($Dynamics.update(dt)($));
+                 };
+              },
               system)
               ,_1: $Effects.none};
    var app = $StartApp.start({_: {}

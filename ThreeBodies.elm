@@ -61,7 +61,7 @@ app =
 
 init : (Model, Effects Action)
 init =
-  ( Pause.active Dynamics.update system
+  ( Pause.active (\dt -> Dynamics.update dt >> Dynamics.recenterMass) system
   , Effects.none
   )
 
@@ -77,8 +77,8 @@ planets : List Planet
 planets =
   [ { position = { x = 0.0, y = -20.0 }
     , velocity = Vector.zero
-    , mass = 1e15
-    , radius = 15.0
+    , mass = 5e15
+    , radius = 50.0
     }
   , { position = { x = 100.0, y = 0.0 }
     , velocity = Vector.zero
@@ -88,7 +88,7 @@ planets =
   , { position = { x = -70.0, y = 60.0 }
     , velocity = Vector.zero
     , mass = 1e15
-    , radius = 25.0
+    , radius = 20.0
     }
   ]
 
