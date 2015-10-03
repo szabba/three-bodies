@@ -3,6 +3,15 @@ body {
         font-size: 15px !important;
 }
 
+h1 {
+        font-weight: normal;
+        font-family: futura, 'century gothic', 'twentieth century', calibri, verdana, helvetica, arial;
+}
+
+p, li {
+        line-height: 1.5em !important;
+}
+
 a {
         color: #1184CE;
         text-decoration: none;
@@ -26,11 +35,7 @@ button:hover {
         color: #FFFFFF;
 }
 
-h1 {
-        font-weight: normal;
-        font-family: futura, 'century gothic', 'twentieth century', calibri, verdana, helvetica, arial;
-}
-
-p, li {
-        line-height: 1.5em !important;
+div.content {
+        width: 40em;
+        margin: 40px auto;
 }

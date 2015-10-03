@@ -118,7 +118,7 @@ view address model =
   let
     system = model.inner
   in
-    div [ containerStyle ]
+    div [ Attributes.class "content" ]
         [ h1 [] [ text "The three body problem" ]
         , p [] [ text problemDescription ]
         , planetCanvas system
@@ -134,18 +134,6 @@ pauseButton address paused =
     button
       [ Events.onClick address Pause.Toggle ]
       [ text content ]
-
-
-containerStyle : Attribute
-containerStyle =
-  Attributes.style
-    [ ("width", "40em")
-    , ("margin", "40px auto")
-    ]
-
-pauseButtonStyle : Attribute
-pauseButtonStyle =
-  Attributes.style []
 
 
 problemDescription : String
