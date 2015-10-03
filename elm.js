@@ -13719,6 +13719,16 @@ Elm.ThreeBodies.make = function (_elm) {
                                                         ,"then determining the motions of the three bodies, in accordance with the"
                                                         ," laws of classical mechanics (Newton\'s laws of motion and of universal "
                                                         ,"gravitation)."]));
+   var todo = $Html.ul(_L.fromArray([]))($List.map(function (todoItem) {
+      return A2($Html.li,
+      _L.fromArray([]),
+      _L.fromArray([$Html.text(todoItem)]));
+   })(_L.fromArray(["Protect against NaN/infinite forces"
+                   ,"Show a tail / trace trajectories"
+                   ,"Factory reset button"
+                   ,"Random configuration button"
+                   ,"Discuss constrained forms of the problem"
+                   ,"Visualize the instability (Lyapunov exponents!)"])));
    var view = F2(function (address,
    model) {
       return function () {
@@ -13739,7 +13749,8 @@ Elm.ThreeBodies.make = function (_elm) {
          _L.fromArray([header,problem]),
          A2($Basics._op["++"],
          firstSimulation,
-         _L.fromArray([$Layout$Footer.view])));
+         _L.fromArray([todo
+                      ,$Layout$Footer.view])));
          var system = model.inner;
          return A2($Html.div,
          _L.fromArray([$Html$Attributes.id("content")]),
@@ -13777,6 +13788,7 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,ticker: ticker
                              ,update: update
                              ,view: view
+                             ,todo: todo
                              ,problemDescription: problemDescription};
    return _elm.ThreeBodies.values;
 };

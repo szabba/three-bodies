@@ -71,10 +71,22 @@ view address model =
     header = h1 [] [ text "The three body problem" ]
     problem = p [] [ text problemDescription ]
     firstSimulation = First.view 50 (600, 400) address model
-    content = [ header, problem ] ++ firstSimulation ++ [ Footer.view ]
+    content = [ header, problem ] ++ firstSimulation ++ [ todo, Footer.view ]
   in
     div [ Attributes.id "content" ] content
 
+
+todo : Html
+todo =
+  [ "Protect against NaN/infinite forces"
+  , "Show a tail / trace trajectories"
+  , "Factory reset button"
+  , "Random configuration button"
+  , "Discuss constrained forms of the problem"
+  , "Visualize the instability (Lyapunov exponents!)"
+  ]
+    |> List.map (\todoItem -> li [] [ text todoItem ])
+    |> ul []
 
 
 problemDescription : String
