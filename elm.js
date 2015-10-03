@@ -13588,6 +13588,7 @@ Elm.ThreeBodies.make = function (_elm) {
                                                         ,"then determining the motions of the three bodies, in accordance with the"
                                                         ," laws of classical mechanics (Newton\'s laws of motion and of universal "
                                                         ,"gravitation)."]));
+   var pauseButtonStyle = $Html$Attributes.style(_L.fromArray([]));
    var containerStyle = $Html$Attributes.style(_L.fromArray([{ctor: "_Tuple2"
                                                              ,_0: "width"
                                                              ,_1: "40em"}
@@ -13618,12 +13619,11 @@ Elm.ThreeBodies.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([$Html.text(problemDescription)]))
                       ,planetCanvas(system)
-                      ,A2(pauseButton,
-                      address,
-                      model.paused)
-                      ,A2($Html.p,
+                      ,A2($Html.div,
                       _L.fromArray([]),
-                      _L.fromArray([$Html.text($Basics.toString(system.bodies))]))]));
+                      _L.fromArray([A2(pauseButton,
+                      address,
+                      model.paused)]))]));
       }();
    });
    var update = F2(function (action,
@@ -13687,6 +13687,7 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,view: view
                              ,pauseButton: pauseButton
                              ,containerStyle: containerStyle
+                             ,pauseButtonStyle: pauseButtonStyle
                              ,problemDescription: problemDescription
                              ,planetCanvas: planetCanvas
                              ,scaleFactor: scaleFactor};

@@ -16,8 +16,8 @@ import Task
 import Time exposing (Time)
 
 import Html exposing (..)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick)
+import Html.Attributes as Attributes
+import Html.Events as Events
 
 import Color exposing (red, black)
 
@@ -120,10 +120,9 @@ view address model =
   in
     div [ containerStyle ]
         [ h1 [] [ text "The three body problem" ]
-        , p  [] [ text problemDescription ]
+        , p [] [ text problemDescription ]
         , planetCanvas system
-        , pauseButton address model.paused
-        , p  [] [ text <| toString system.bodies ]
+        , div [] [ pauseButton address model.paused ]
         ]
 
 
@@ -132,14 +131,21 @@ pauseButton address paused =
   let
     content = if paused then "unpause" else "pause"
   in
-    button [ onClick address Pause.Toggle ] [ text content ]
+    button
+      [ Events.onClick address Pause.Toggle ]
+      [ text content ]
 
 
 containerStyle : Attribute
 containerStyle =
-  style [ ("width", "40em")
-        , ("margin", "40px auto")
-        ]
+  Attributes.style
+    [ ("width", "40em")
+    , ("margin", "40px auto")
+    ]
+
+pauseButtonStyle : Attribute
+pauseButtonStyle =
+  Attributes.style []
 
 
 problemDescription : String

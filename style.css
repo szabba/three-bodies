@@ -13,6 +13,19 @@ a:hover {
         color: rgb(234,21,122);
 }
 
+button {
+        width: 100px;
+        background-color: #FFFFFF;
+        color: #1184CE;
+        padding: 5px;
+        border: 0px;
+}
+
+button:hover {
+        background-color: #1184CE;;
+        color: #FFFFFF;
+}
+
 h1 {
         font-weight: normal;
         font-family: futura, 'century gothic', 'twentieth century', calibri, verdana, helvetica, arial;
