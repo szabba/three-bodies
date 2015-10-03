@@ -2,10 +2,7 @@ module ThreeBodies where
 
 import Layout.Footer as Footer
 
-import Dynamics
-import Planet exposing (Planet)
-import Gravity
-import Vector exposing (Vector, plus)
+import Simulations.First as First
 
 import Pause
 
@@ -16,18 +13,9 @@ import Time exposing (Time)
 
 import Html exposing (..)
 import Html.Attributes as Attributes
-import Html.Events as Events
 
 import Signal exposing (Signal, Address)
 import String
-
-
-type alias Model =
-  Pause.Model Time Planet.System
-
-
-type alias Action =
-  Pause.Action Time
 
 
 main : Signal Html
@@ -40,7 +28,7 @@ port tasks =
   app.tasks
 
 
-app : StartApp.App Model
+app : StartApp.App First.Model
 app =
   StartApp.start
     { init = init
@@ -53,41 +41,12 @@ app =
 -- MODEL
 
 
-init : (Model, Effects Action)
+init : (First.Model, Effects First.Action)
 init =
-  ( Pause.active (\dt -> Dynamics.update dt >> Dynamics.recenterMass) system
-  , Effects.none
-  )
+  ( First.init, Effects.none )
 
 
-system : Planet.System
-system =
-  { bodies = planets
-  , forceSource = Gravity.force
-  }
-
-
-planets : List Planet
-planets =
-  [ { position = { x = 0.0, y = -20.0 }
-    , velocity = Vector.zero
-    , mass = 5e15
-    , radius = 50.0
-    }
-  , { position = { x = 100.0, y = 0.0 }
-    , velocity = Vector.zero
-    , mass = 1e15
-    , radius = 20.0
-    }
-  , { position = { x = -70.0, y = 60.0 }
-    , velocity = Vector.zero
-    , mass = 1e15
-    , radius = 20.0
-    }
-  ]
-
-
-ticker : Time -> Signal Action
+ticker : Time -> Signal First.Action
 ticker dt =
   dt * Time.second
     |> Time.every
@@ -97,38 +56,25 @@ ticker dt =
 -- UPDATE
 
 
-update :  Action -> Model -> (Model, Effects Action)
+update :  First.Action -> First.Model -> (First.Model, Effects First.Action)
 update action model =
-  ( Pause.update action model
-  , Effects.none
-  )
+  ( First.update action model, Effects.none )
 
 
 -- VIEW
 
 
-view : Address Action -> Model -> Html
+view : Address First.Action -> First.Model -> Html
 view address model =
   let
     system = model.inner
+    header = h1 [] [ text "The three body problem" ]
+    problem = p [] [ text problemDescription ]
+    firstSimulation = First.view 50 (600, 400) address model
+    content = [ header, problem ] ++ firstSimulation ++ [ Footer.view ]
   in
-    div [ Attributes.id "content" ]
-        [ h1 [] [ text "The three body problem" ]
-        , p [] [ text problemDescription ]
-        , Planet.view 50 (600, 400) system
-        , div [] [ pauseButton address model.paused ]
-        , Footer.view
-        ]
+    div [ Attributes.id "content" ] content
 
-
-pauseButton : Address Action -> Bool -> Html
-pauseButton address paused =
-  let
-    content = if paused then "unpause" else "pause"
-  in
-    button
-      [ Events.onClick address Pause.Toggle ]
-      [ text content ]
 
 
 problemDescription : String

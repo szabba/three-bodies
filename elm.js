@@ -13076,6 +13076,96 @@ Elm.Signal.make = function (_elm) {
                         ,Mailbox: Mailbox};
    return _elm.Signal.values;
 };
+Elm.Simulations = Elm.Simulations || {};
+Elm.Simulations.First = Elm.Simulations.First || {};
+Elm.Simulations.First.make = function (_elm) {
+   "use strict";
+   _elm.Simulations = _elm.Simulations || {};
+   _elm.Simulations.First = _elm.Simulations.First || {};
+   if (_elm.Simulations.First.values)
+   return _elm.Simulations.First.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Simulations.First",
+   $Basics = Elm.Basics.make(_elm),
+   $Dynamics = Elm.Dynamics.make(_elm),
+   $Gravity = Elm.Gravity.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Pause = Elm.Pause.make(_elm),
+   $Planet = Elm.Planet.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Time = Elm.Time.make(_elm),
+   $Vector = Elm.Vector.make(_elm);
+   var pauseButton = F2(function (address,
+   paused) {
+      return function () {
+         var content = paused ? "unpause" : "pause";
+         return A2($Html.button,
+         _L.fromArray([A2($Html$Events.onClick,
+         address,
+         $Pause.Toggle)]),
+         _L.fromArray([$Html.text(content)]));
+      }();
+   });
+   var view = F4(function (margin,
+   dimmensions,
+   address,
+   model) {
+      return _L.fromArray([A3($Planet.view,
+                          margin,
+                          dimmensions,
+                          model.inner)
+                          ,A2(pauseButton,
+                          address,
+                          model.paused)]);
+   });
+   var update = $Pause.update;
+   var planets = _L.fromArray([{_: {}
+                               ,mass: 5.0e15
+                               ,position: {_: {}
+                                          ,x: 0.0
+                                          ,y: -20.0}
+                               ,radius: 50.0
+                               ,velocity: $Vector.zero}
+                              ,{_: {}
+                               ,mass: 1.0e15
+                               ,position: {_: {}
+                                          ,x: 100.0
+                                          ,y: 0.0}
+                               ,radius: 20.0
+                               ,velocity: $Vector.zero}
+                              ,{_: {}
+                               ,mass: 1.0e15
+                               ,position: {_: {}
+                                          ,x: -70.0
+                                          ,y: 60.0}
+                               ,radius: 20.0
+                               ,velocity: $Vector.zero}]);
+   var system = {_: {}
+                ,bodies: planets
+                ,forceSource: $Gravity.force};
+   var init = A2($Pause.active,
+   function (dt) {
+      return function ($) {
+         return $Dynamics.recenterMass($Dynamics.update(dt)($));
+      };
+   },
+   system);
+   _elm.Simulations.First.values = {_op: _op
+                                   ,init: init
+                                   ,system: system
+                                   ,planets: planets
+                                   ,update: update
+                                   ,view: view
+                                   ,pauseButton: pauseButton};
+   return _elm.Simulations.First.values;
+};
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -13609,71 +13699,57 @@ Elm.ThreeBodies.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "ThreeBodies",
    $Basics = Elm.Basics.make(_elm),
-   $Dynamics = Elm.Dynamics.make(_elm),
    $Effects = Elm.Effects.make(_elm),
-   $Gravity = Elm.Gravity.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
    $Layout$Footer = Elm.Layout.Footer.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
-   $Planet = Elm.Planet.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
+   $Simulations$First = Elm.Simulations.First.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm),
-   $Time = Elm.Time.make(_elm),
-   $Vector = Elm.Vector.make(_elm);
+   $Time = Elm.Time.make(_elm);
    var problemDescription = $String.concat(_L.fromArray(["In physics and classical mechanics, the three-body problem is the problem"
                                                         ," of taking an initial set of data that specifies the positions, masses "
                                                         ,"and velocities of three bodies for some particular point in time and "
                                                         ,"then determining the motions of the three bodies, in accordance with the"
                                                         ," laws of classical mechanics (Newton\'s laws of motion and of universal "
                                                         ,"gravitation)."]));
-   var pauseButton = F2(function (address,
-   paused) {
-      return function () {
-         var content = paused ? "unpause" : "pause";
-         return A2($Html.button,
-         _L.fromArray([A2($Html$Events.onClick,
-         address,
-         $Pause.Toggle)]),
-         _L.fromArray([$Html.text(content)]));
-      }();
-   });
    var view = F2(function (address,
    model) {
       return function () {
+         var firstSimulation = A4($Simulations$First.view,
+         50,
+         {ctor: "_Tuple2"
+         ,_0: 600
+         ,_1: 400},
+         address,
+         model);
+         var problem = A2($Html.p,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text(problemDescription)]));
+         var header = A2($Html.h1,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text("The three body problem")]));
+         var content = A2($Basics._op["++"],
+         _L.fromArray([header,problem]),
+         A2($Basics._op["++"],
+         firstSimulation,
+         _L.fromArray([$Layout$Footer.view])));
          var system = model.inner;
          return A2($Html.div,
          _L.fromArray([$Html$Attributes.id("content")]),
-         _L.fromArray([A2($Html.h1,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text("The three body problem")]))
-                      ,A2($Html.p,
-                      _L.fromArray([]),
-                      _L.fromArray([$Html.text(problemDescription)]))
-                      ,A3($Planet.view,
-                      50,
-                      {ctor: "_Tuple2"
-                      ,_0: 600
-                      ,_1: 400},
-                      system)
-                      ,A2($Html.div,
-                      _L.fromArray([]),
-                      _L.fromArray([A2(pauseButton,
-                      address,
-                      model.paused)]))
-                      ,$Layout$Footer.view]));
+         content);
       }();
    });
    var update = F2(function (action,
    model) {
       return {ctor: "_Tuple2"
-             ,_0: A2($Pause.update,
+             ,_0: A2($Simulations$First.update,
              action,
              model)
              ,_1: $Effects.none};
@@ -13683,38 +13759,8 @@ Elm.ThreeBodies.make = function (_elm) {
          return $Pause.Wrapped($Basics.always(dt)($));
       })($Time.every(dt * $Time.second));
    };
-   var planets = _L.fromArray([{_: {}
-                               ,mass: 5.0e15
-                               ,position: {_: {}
-                                          ,x: 0.0
-                                          ,y: -20.0}
-                               ,radius: 50.0
-                               ,velocity: $Vector.zero}
-                              ,{_: {}
-                               ,mass: 1.0e15
-                               ,position: {_: {}
-                                          ,x: 100.0
-                                          ,y: 0.0}
-                               ,radius: 20.0
-                               ,velocity: $Vector.zero}
-                              ,{_: {}
-                               ,mass: 1.0e15
-                               ,position: {_: {}
-                                          ,x: -70.0
-                                          ,y: 60.0}
-                               ,radius: 20.0
-                               ,velocity: $Vector.zero}]);
-   var system = {_: {}
-                ,bodies: planets
-                ,forceSource: $Gravity.force};
    var init = {ctor: "_Tuple2"
-              ,_0: A2($Pause.active,
-              function (dt) {
-                 return function ($) {
-                    return $Dynamics.recenterMass($Dynamics.update(dt)($));
-                 };
-              },
-              system)
+              ,_0: $Simulations$First.init
               ,_1: $Effects.none};
    var app = $StartApp.start({_: {}
                              ,init: init
@@ -13728,12 +13774,9 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,main: main
                              ,app: app
                              ,init: init
-                             ,system: system
-                             ,planets: planets
                              ,ticker: ticker
                              ,update: update
                              ,view: view
-                             ,pauseButton: pauseButton
                              ,problemDescription: problemDescription};
    return _elm.ThreeBodies.values;
 };
