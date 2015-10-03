@@ -3819,6 +3819,113 @@ Elm.Html.Attributes.make = function (_elm) {
                                  ,attribute: attribute};
    return _elm.Html.Attributes.values;
 };
+Elm.Html = Elm.Html || {};
+Elm.Html.Events = Elm.Html.Events || {};
+Elm.Html.Events.make = function (_elm) {
+   "use strict";
+   _elm.Html = _elm.Html || {};
+   _elm.Html.Events = _elm.Html.Events || {};
+   if (_elm.Html.Events.values)
+   return _elm.Html.Events.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Html.Events",
+   $Basics = Elm.Basics.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Json$Decode = Elm.Json.Decode.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $VirtualDom = Elm.VirtualDom.make(_elm);
+   var keyCode = A2($Json$Decode._op[":="],
+   "keyCode",
+   $Json$Decode.$int);
+   var targetChecked = A2($Json$Decode.at,
+   _L.fromArray(["target"
+                ,"checked"]),
+   $Json$Decode.bool);
+   var targetValue = A2($Json$Decode.at,
+   _L.fromArray(["target"
+                ,"value"]),
+   $Json$Decode.string);
+   var defaultOptions = $VirtualDom.defaultOptions;
+   var Options = F2(function (a,
+   b) {
+      return {_: {}
+             ,preventDefault: b
+             ,stopPropagation: a};
+   });
+   var onWithOptions = $VirtualDom.onWithOptions;
+   var on = $VirtualDom.on;
+   var messageOn = F3(function (name,
+   addr,
+   msg) {
+      return A3(on,
+      name,
+      $Json$Decode.value,
+      function (_v0) {
+         return function () {
+            return A2($Signal.message,
+            addr,
+            msg);
+         }();
+      });
+   });
+   var onClick = messageOn("click");
+   var onDoubleClick = messageOn("dblclick");
+   var onMouseMove = messageOn("mousemove");
+   var onMouseDown = messageOn("mousedown");
+   var onMouseUp = messageOn("mouseup");
+   var onMouseEnter = messageOn("mouseenter");
+   var onMouseLeave = messageOn("mouseleave");
+   var onMouseOver = messageOn("mouseover");
+   var onMouseOut = messageOn("mouseout");
+   var onBlur = messageOn("blur");
+   var onFocus = messageOn("focus");
+   var onSubmit = messageOn("submit");
+   var onKey = F3(function (name,
+   addr,
+   handler) {
+      return A3(on,
+      name,
+      keyCode,
+      function (code) {
+         return A2($Signal.message,
+         addr,
+         handler(code));
+      });
+   });
+   var onKeyUp = onKey("keyup");
+   var onKeyDown = onKey("keydown");
+   var onKeyPress = onKey("keypress");
+   _elm.Html.Events.values = {_op: _op
+                             ,onBlur: onBlur
+                             ,onFocus: onFocus
+                             ,onSubmit: onSubmit
+                             ,onKeyUp: onKeyUp
+                             ,onKeyDown: onKeyDown
+                             ,onKeyPress: onKeyPress
+                             ,onClick: onClick
+                             ,onDoubleClick: onDoubleClick
+                             ,onMouseMove: onMouseMove
+                             ,onMouseDown: onMouseDown
+                             ,onMouseUp: onMouseUp
+                             ,onMouseEnter: onMouseEnter
+                             ,onMouseLeave: onMouseLeave
+                             ,onMouseOver: onMouseOver
+                             ,onMouseOut: onMouseOut
+                             ,on: on
+                             ,onWithOptions: onWithOptions
+                             ,defaultOptions: defaultOptions
+                             ,targetValue: targetValue
+                             ,targetChecked: targetChecked
+                             ,keyCode: keyCode
+                             ,Options: Options};
+   return _elm.Html.Events.values;
+};
 Elm.Json = Elm.Json || {};
 Elm.Json.Decode = Elm.Json.Decode || {};
 Elm.Json.Decode.make = function (_elm) {
@@ -12275,6 +12382,73 @@ Elm.Native.VirtualDom.make = function(elm)
 
 },{}]},{},[23]);
 
+Elm.Pause = Elm.Pause || {};
+Elm.Pause.make = function (_elm) {
+   "use strict";
+   _elm.Pause = _elm.Pause || {};
+   if (_elm.Pause.values)
+   return _elm.Pause.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Pause",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var update = F2(function (wrappedAction,
+   model) {
+      return function () {
+         switch (wrappedAction.ctor)
+         {case "Toggle":
+            return _U.replace([["paused"
+                               ,$Basics.not(model.paused)]],
+              model);
+            case "Wrapped":
+            return model.paused ? model : _U.replace([["inner"
+                                                      ,A2(model.update,
+                                                      wrappedAction._0,
+                                                      model.inner)]],
+              model);}
+         _U.badCase($moduleName,
+         "between lines 32 and 39");
+      }();
+   });
+   var $new = F3(function (paused,
+   update,
+   model) {
+      return {_: {}
+             ,inner: model
+             ,paused: paused
+             ,update: update};
+   });
+   var active = $new(false);
+   var paused = $new(true);
+   var Toggle = {ctor: "Toggle"};
+   var Wrapped = function (a) {
+      return {ctor: "Wrapped"
+             ,_0: a};
+   };
+   var Model = F3(function (a,
+   b,
+   c) {
+      return {_: {}
+             ,inner: a
+             ,paused: c
+             ,update: b};
+   });
+   _elm.Pause.values = {_op: _op
+                       ,Model: Model
+                       ,Wrapped: Wrapped
+                       ,Toggle: Toggle
+                       ,paused: paused
+                       ,active: active
+                       ,$new: $new
+                       ,update: update};
+   return _elm.Pause.values;
+};
 Elm.Planet = Elm.Planet || {};
 Elm.Planet.make = function (_elm) {
    "use strict";
@@ -13361,8 +13535,10 @@ Elm.ThreeBodies.make = function (_elm) {
    $Gravity = Elm.Gravity.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
    $Planet$Scale = Elm.Planet.Scale.make(_elm),
    $Result = Elm.Result.make(_elm),
@@ -13424,9 +13600,21 @@ Elm.ThreeBodies.make = function (_elm) {
                                                             ,{ctor: "_Tuple2"
                                                              ,_0: "margin"
                                                              ,_1: "40px auto"}]));
-   var view = F2(function (_v0,
-   system) {
+   var pauseButton = F2(function (address,
+   paused) {
       return function () {
+         var content = paused ? "unpause" : "pause";
+         return A2($Html.button,
+         _L.fromArray([A2($Html$Events.onClick,
+         address,
+         $Pause.Toggle)]),
+         _L.fromArray([$Html.text(content)]));
+      }();
+   });
+   var view = F2(function (address,
+   model) {
+      return function () {
+         var system = model.inner;
          return A2($Html.div,
          _L.fromArray([containerStyle]),
          _L.fromArray([A2($Html.h1,
@@ -13436,45 +13624,26 @@ Elm.ThreeBodies.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([$Html.text(problemDescription)]))
                       ,planetCanvas(system)
+                      ,A2(pauseButton,
+                      address,
+                      model.paused)
                       ,A2($Html.p,
                       _L.fromArray([]),
                       _L.fromArray([$Html.text($Basics.toString(system.bodies))]))]));
       }();
    });
-   var zip = F2(function (first,
-   second) {
-      return function () {
-         var _v2 = {ctor: "_Tuple2"
-                   ,_0: first
-                   ,_1: second};
-         switch (_v2.ctor)
-         {case "_Tuple2":
-            switch (_v2._0.ctor)
-              {case "::": switch (_v2._1.ctor)
-                   {case "::":
-                      return A2($List._op["::"],
-                        {ctor: "_Tuple2"
-                        ,_0: _v2._0._0
-                        ,_1: _v2._1._0},
-                        A2(zip,_v2._0._1,_v2._1._1));}
-                   break;}
-              break;}
-         return _L.fromArray([]);
-      }();
-   });
-   var update = F2(function (dt,
-   system) {
-      return function () {
-         var updatedSystem = A2($Dynamics.update,
-         dt,
-         system);
-         return {ctor: "_Tuple2"
-                ,_0: updatedSystem
-                ,_1: $Effects.none};
-      }();
+   var update = F2(function (action,
+   model) {
+      return {ctor: "_Tuple2"
+             ,_0: A2($Pause.update,
+             action,
+             model)
+             ,_1: $Effects.none};
    });
    var ticker = function (dt) {
-      return $Signal.map($Basics.always(dt))($Time.every(dt * $Time.second));
+      return $Signal.map(function ($) {
+         return $Pause.Wrapped($Basics.always(dt)($));
+      })($Time.every(dt * $Time.second));
    };
    var planets = _L.fromArray([{_: {}
                                ,mass: 1.0e15
@@ -13501,7 +13670,9 @@ Elm.ThreeBodies.make = function (_elm) {
                 ,bodies: planets
                 ,forceSource: $Gravity.force};
    var init = {ctor: "_Tuple2"
-              ,_0: system
+              ,_0: A2($Pause.active,
+              $Dynamics.update,
+              system)
               ,_1: $Effects.none};
    var app = $StartApp.start({_: {}
                              ,init: init
@@ -13519,8 +13690,8 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,planets: planets
                              ,ticker: ticker
                              ,update: update
-                             ,zip: zip
                              ,view: view
+                             ,pauseButton: pauseButton
                              ,containerStyle: containerStyle
                              ,problemDescription: problemDescription
                              ,planetCanvas: planetCanvas
