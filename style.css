@@ -35,7 +35,13 @@ button:hover {
         color: #FFFFFF;
 }
 
-div.content {
+div#content {
         width: 40em;
         margin: 40px auto;
+}
+
+div#footer {
+        width: 100%;
+        height: 80px;
+        background-color: #DDDDDD;
 }

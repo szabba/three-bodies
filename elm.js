@@ -13635,12 +13635,24 @@ Elm.ThreeBodies.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
+   var gravatarURL = "http://www.gravatar.com/avatar/c883fb6c6f1304c1b4b6eb1b0147b792?s=80&d=mm";
+   var avatarSize = 80;
+   var avatar = A2($Html.img,
+   _L.fromArray([$Html$Attributes.id("avatar")
+                ,$Html$Attributes.src(gravatarURL)
+                ,$Html$Attributes.alt("avatar")
+                ,$Html$Attributes.width(avatarSize)
+                ,$Html$Attributes.height(avatarSize)]),
+   _L.fromArray([]));
+   var authorFooter = A2($Html.div,
+   _L.fromArray([$Html$Attributes.id("footer")]),
+   _L.fromArray([avatar]));
    var view = F2(function (address,
    model) {
       return function () {
          var system = model.inner;
          return A2($Html.div,
-         _L.fromArray([$Html$Attributes.$class("content")]),
+         _L.fromArray([$Html$Attributes.id("content")]),
          _L.fromArray([A2($Html.h1,
                       _L.fromArray([]),
                       _L.fromArray([$Html.text("The three body problem")]))
@@ -13652,7 +13664,8 @@ Elm.ThreeBodies.make = function (_elm) {
                       _L.fromArray([]),
                       _L.fromArray([A2(pauseButton,
                       address,
-                      model.paused)]))]));
+                      model.paused)]))
+                      ,authorFooter]));
       }();
    });
    var update = F2(function (action,
@@ -13718,6 +13731,10 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,ticker: ticker
                              ,update: update
                              ,view: view
+                             ,authorFooter: authorFooter
+                             ,avatar: avatar
+                             ,avatarSize: avatarSize
+                             ,gravatarURL: gravatarURL
                              ,pauseButton: pauseButton
                              ,problemDescription: problemDescription
                              ,planetCanvas: planetCanvas

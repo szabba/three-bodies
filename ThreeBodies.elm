@@ -118,12 +118,42 @@ view address model =
   let
     system = model.inner
   in
-    div [ Attributes.class "content" ]
+    div [ Attributes.id "content" ]
         [ h1 [] [ text "The three body problem" ]
         , p [] [ text problemDescription ]
         , planetCanvas system
         , div [] [ pauseButton address model.paused ]
+        , authorFooter
         ]
+
+
+authorFooter : Html
+authorFooter =
+  div
+    [ Attributes.id "footer" ]
+    [ avatar ]
+
+
+avatar : Html
+avatar =
+  img
+    [ Attributes.id "avatar"
+    , Attributes.src gravatarURL
+    , Attributes.alt "avatar"
+    , Attributes.width avatarSize
+    , Attributes.height avatarSize
+    ]
+    []
+
+
+avatarSize : Int
+avatarSize = 80
+
+
+{- FIXME: Get an MD5 implementation in Elm, so we can just hash an e-mail. -}
+gravatarURL : String
+gravatarURL =
+  "http://www.gravatar.com/avatar/c883fb6c6f1304c1b4b6eb1b0147b792?s=80&d=mm"
 
 
 pauseButton : Address Action -> Bool -> Html
