@@ -5,9 +5,6 @@ import Planet exposing (Planet)
 import Gravity
 import Vector exposing (Vector, plus)
 
-import Planet.Scale as PS
-import Scale
-
 import Pause
 
 import StartApp
@@ -18,11 +15,6 @@ import Time exposing (Time)
 import Html exposing (..)
 import Html.Attributes as Attributes
 import Html.Events as Events
-
-import Color exposing (red, black)
-
-import Graphics.Element as G
-import Graphics.Collage as C
 
 import Signal exposing (Signal, Address)
 import String
@@ -121,7 +113,7 @@ view address model =
     div [ Attributes.id "content" ]
         [ h1 [] [ text "The three body problem" ]
         , p [] [ text problemDescription ]
-        , planetCanvas system
+        , Planet.view 50 (600, 400) system
         , div [] [ pauseButton address model.paused ]
         , authorFooter
         ]
@@ -175,31 +167,3 @@ problemDescription =
    , "then determining the motions of the three bodies, in accordance with the"
    , " laws of classical mechanics (Newton's laws of motion and of universal "
    , "gravitation)." ]
-
-
-planetCanvas : Planet.System -> Html
-planetCanvas system =
-  let
-    width = 600
-    height = 400
-    margin = 30
-    scaleBy = scaleFactor margin (width, height) system
-
-    planetShapes =
-      List.map Planet.view system.bodies
-        |> C.group
-        |> C.scale scaleBy
-  in
-    [planetShapes]
-      |> C.collage width height
-      |> G.color black
-      |> Html.fromElement
-
-
-scaleFactor : Int -> (Int, Int) -> Planet.System -> Float
-scaleFactor margin targetDimmensions system =
-  let
-    marginFactor = Scale.addMargin margin targetDimmensions
-    fitFactor = Scale.fitWithMeter PS.meter targetDimmensions system
-  in
-    marginFactor * fitFactor

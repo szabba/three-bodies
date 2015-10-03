@@ -12500,36 +12500,10 @@ Elm.Planet.make = function (_elm) {
    $Color = Elm.Color.make(_elm),
    $Dynamics = Elm.Dynamics.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var view = function (planet) {
-      return $Graphics$Collage.move({ctor: "_Tuple2"
-                                    ,_0: planet.position.x
-                                    ,_1: planet.position.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(planet.radius)));
-   };
-   _elm.Planet.values = {_op: _op
-                        ,view: view};
-   return _elm.Planet.values;
-};
-Elm.Planet = Elm.Planet || {};
-Elm.Planet.Scale = Elm.Planet.Scale || {};
-Elm.Planet.Scale.make = function (_elm) {
-   "use strict";
-   _elm.Planet = _elm.Planet || {};
-   _elm.Planet.Scale = _elm.Planet.Scale || {};
-   if (_elm.Planet.Scale.values)
-   return _elm.Planet.Scale.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Planet.Scale",
-   $Basics = Elm.Basics.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Planet = Elm.Planet.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Scale = Elm.Scale.make(_elm),
    $Signal = Elm.Signal.make(_elm),
@@ -12578,9 +12552,45 @@ Elm.Planet.Scale.make = function (_elm) {
                 ,_1: height};
       }();
    };
-   _elm.Planet.Scale.values = {_op: _op
-                              ,meter: meter};
-   return _elm.Planet.Scale.values;
+   var scaleFactor = F3(function (margin,
+   targetDimmensions,
+   system) {
+      return function () {
+         var fitFactor = A3($Scale.fitWithMeter,
+         meter,
+         targetDimmensions,
+         system);
+         var marginFactor = A2($Scale.addMargin,
+         margin,
+         targetDimmensions);
+         return marginFactor * fitFactor;
+      }();
+   });
+   var viewPlanet = function (planet) {
+      return $Graphics$Collage.move({ctor: "_Tuple2"
+                                    ,_0: planet.position.x
+                                    ,_1: planet.position.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(planet.radius)));
+   };
+   var view = F3(function (margin,
+   dimmensions,
+   system) {
+      return function () {
+         var scaleBy = A3(scaleFactor,
+         margin,
+         dimmensions,
+         system);
+         var planetShapes = $Graphics$Collage.scale(scaleBy)($Graphics$Collage.group($List.map(viewPlanet)(system.bodies)));
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
+         return $Html.fromElement($Graphics$Element.color($Color.black)(A2($Graphics$Collage.collage,
+         width,
+         height)(_L.fromArray([planetShapes]))));
+      }();
+   });
+   _elm.Planet.values = {_op: _op
+                        ,view: view};
+   return _elm.Planet.values;
 };
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
@@ -13563,11 +13573,8 @@ Elm.ThreeBodies.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "ThreeBodies",
    $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
    $Dynamics = Elm.Dynamics.make(_elm),
    $Effects = Elm.Effects.make(_elm),
-   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
-   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Gravity = Elm.Gravity.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -13576,48 +13583,13 @@ Elm.ThreeBodies.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
-   $Planet$Scale = Elm.Planet.Scale.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Scale = Elm.Scale.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm),
    $Time = Elm.Time.make(_elm),
    $Vector = Elm.Vector.make(_elm);
-   var scaleFactor = F3(function (margin,
-   targetDimmensions,
-   system) {
-      return function () {
-         var fitFactor = A3($Scale.fitWithMeter,
-         $Planet$Scale.meter,
-         targetDimmensions,
-         system);
-         var marginFactor = A2($Scale.addMargin,
-         margin,
-         targetDimmensions);
-         return marginFactor * fitFactor;
-      }();
-   });
-   var planetCanvas = function (system) {
-      return function () {
-         var margin = 30;
-         var height = 400;
-         var width = 600;
-         var scaleBy = A3(scaleFactor,
-         margin,
-         {ctor: "_Tuple2"
-         ,_0: width
-         ,_1: height},
-         system);
-         var planetShapes = $Graphics$Collage.scale(scaleBy)($Graphics$Collage.group(A2($List.map,
-         $Planet.view,
-         system.bodies)));
-         return $Html.fromElement($Graphics$Element.color($Color.black)(A2($Graphics$Collage.collage,
-         width,
-         height)(_L.fromArray([planetShapes]))));
-      }();
-   };
    var problemDescription = $String.concat(_L.fromArray(["In physics and classical mechanics, the three-body problem is the problem"
                                                         ," of taking an initial set of data that specifies the positions, masses "
                                                         ,"and velocities of three bodies for some particular point in time and "
@@ -13659,7 +13631,12 @@ Elm.ThreeBodies.make = function (_elm) {
                       ,A2($Html.p,
                       _L.fromArray([]),
                       _L.fromArray([$Html.text(problemDescription)]))
-                      ,planetCanvas(system)
+                      ,A3($Planet.view,
+                      50,
+                      {ctor: "_Tuple2"
+                      ,_0: 600
+                      ,_1: 400},
+                      system)
                       ,A2($Html.div,
                       _L.fromArray([]),
                       _L.fromArray([A2(pauseButton,
@@ -13736,9 +13713,7 @@ Elm.ThreeBodies.make = function (_elm) {
                              ,avatarSize: avatarSize
                              ,gravatarURL: gravatarURL
                              ,pauseButton: pauseButton
-                             ,problemDescription: problemDescription
-                             ,planetCanvas: planetCanvas
-                             ,scaleFactor: scaleFactor};
+                             ,problemDescription: problemDescription};
    return _elm.ThreeBodies.values;
 };
 Elm.Time = Elm.Time || {};
