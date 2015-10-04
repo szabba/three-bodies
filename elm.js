@@ -13197,6 +13197,25 @@ Elm.Simulations.First.make = function (_elm) {
                           address,
                           model.paused)]);
    });
+   var updateSystem = function (dt) {
+      return function ($) {
+         return $Dynamics.recenterMass($Dynamics.update(dt)($));
+      };
+   };
+   var traceProjection = F3(function (prevTrace,
+   dt,
+   newState) {
+      return function () {
+         var totalPastTime = $Maybe.withDefault(0.0)(A2($Maybe.map,
+         function (_) {
+            return _.totalTime;
+         },
+         prevTrace));
+         var totalTime = totalPastTime + dt;
+         return {_: {}
+                ,totalTime: totalTime};
+      }();
+   });
    var update = $Pause.update;
    var planets = _L.fromArray([{_: {}
                                ,mass: 5.0e15
@@ -13222,34 +13241,25 @@ Elm.Simulations.First.make = function (_elm) {
    var system = {_: {}
                 ,bodies: planets
                 ,forceSource: $Gravity.force};
-   var tracedSystem = function () {
-      var projection = F2(function (_v0,
-      _v1) {
-         return function () {
-            return function () {
-               return $Dynamics.totalEnergy($Basics.always(0.0));
-            }();
-         }();
-      });
-      var updateSystem = function (dt) {
-         return function ($) {
-            return $Dynamics.recenterMass($Dynamics.update(dt)($));
-         };
-      };
-      return A3($Trace.newWithProjection,
-      projection,
-      updateSystem,
-      system);
-   }();
+   var tracedSystem = A3($Trace.newWithProjection,
+   traceProjection,
+   updateSystem,
+   system);
    var init = A2($Pause.active,
    $Trace.update,
    tracedSystem);
+   var TracedData = function (a) {
+      return {_: {},totalTime: a};
+   };
    _elm.Simulations.First.values = {_op: _op
+                                   ,TracedData: TracedData
                                    ,init: init
                                    ,tracedSystem: tracedSystem
                                    ,system: system
                                    ,planets: planets
                                    ,update: update
+                                   ,traceProjection: traceProjection
+                                   ,updateSystem: updateSystem
                                    ,view: view
                                    ,energyPlot: energyPlot
                                    ,pauseButton: pauseButton};

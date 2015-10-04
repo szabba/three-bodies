@@ -18,7 +18,11 @@ import Time exposing (Time)
 import Signal exposing (Address)
 
 
-type alias Model = Pause.Model Time (Trace Float Time Planet.System)
+type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
+
+
+type alias TracedData =
+  { totalTime : Float }
 
 
 type alias Action = Pause.Action Time
@@ -32,13 +36,9 @@ init =
   Pause.active Trace.update tracedSystem
 
 
-tracedSystem : Trace Float Time Planet.System
+tracedSystem : Trace TracedData Time Planet.System
 tracedSystem =
-  let
-    updateSystem dt = Dynamics.update dt >> Dynamics.recenterMass
-    projection _ _ = Dynamics.totalEnergy (always 0.0)
-  in
-    Trace.newWithProjection projection updateSystem system
+  Trace.newWithProjection traceProjection updateSystem system
 
 
 system : Planet.System
@@ -74,6 +74,20 @@ planets =
 update : Action -> Model -> Model
 update =
   Pause.update
+
+
+traceProjection : Maybe TracedData -> Time -> Planet.System -> TracedData
+traceProjection prevTrace dt newState =
+  let
+    totalPastTime = Maybe.withDefault 0.0 <| Maybe.map .totalTime prevTrace
+    totalTime = totalPastTime + dt
+  in
+    { totalTime = totalTime }
+
+
+updateSystem : Time -> Planet.System -> Planet.System
+updateSystem dt =
+  Dynamics.update dt >> Dynamics.recenterMass
 
 
 -- VIEW
