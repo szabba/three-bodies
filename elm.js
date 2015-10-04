@@ -13828,6 +13828,11 @@ Elm.ThreeBodies.make = function (_elm) {
                    ,A2($Basics._op["++"],
                    "Replace Dynamics.ForceSource with a more general Dynamics.Interaction",
                    " that can also caculate the potential energy")
+                   ,"Make force sources only calculate the force between two bodies"
+                   ,"Ensure that a force from the body on itself never gets calculated"
+                   ,A2($Basics._op["++"],
+                   "Replace force sources with interaction (returning both the force and",
+                   " potential energy)")
                    ,"Random configuration button"
                    ,"Discuss constrained forms of the problem"
                    ,"Visualize the instability (Lyapunov exponents!)"])));
