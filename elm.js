@@ -1915,51 +1915,44 @@ Elm.Dynamics.make = function (_elm) {
    });
    var findSourcesOfForces = function (bodies) {
       return function () {
-         var indexedBodies = A2($List.indexedMap,
-         F2(function (v0,v1) {
-            return {ctor: "_Tuple2"
-                   ,_0: v0
-                   ,_1: v1};
-         }),
-         bodies);
-         var bodyWithSources = function (indexedBody) {
-            return function () {
-               var $ = indexedBody,
-               index = $._0,
-               body = $._1;
-               var sourceOrNone = function (indexedSource) {
-                  return function () {
-                     var $ = indexedSource,
-                     index$ = $._0,
-                     source = $._1;
-                     return _U.eq(index,
-                     index$) ? $Maybe.Nothing : $Maybe.Just(source);
-                  }();
-               };
-               var sources = A2($List.filterMap,
-               sourceOrNone,
-               indexedBodies);
-               return {ctor: "_Tuple2"
-                      ,_0: sources
-                      ,_1: body};
-            }();
+         var sourcesFor = function (n) {
+            return A2($Basics._op["++"],
+            A2($List.take,n - 1,bodies),
+            A2($List.drop,n,bodies));
          };
-         return A2($List.map,
-         bodyWithSources,
-         indexedBodies);
+         var bodyWtihSources = F2(function (n,
+         body) {
+            return {ctor: "_Tuple2"
+                   ,_0: sourcesFor(n)
+                   ,_1: body};
+         });
+         return A2($List.indexedMap,
+         bodyWtihSources,
+         bodies);
       }();
    };
+   var forceSource = F3(function (_v0,
+   sources,
+   target) {
+      return function () {
+         return $Vector.sum($List.map(function (_) {
+            return _.force;
+         })($List.map(function (source) {
+            return _v0.interaction({_: {}
+                                   ,source: source
+                                   ,target: target});
+         })(sources)));
+      }();
+   });
    var update = F2(function (dt,
    system) {
       return function () {
-         var $ = system,
-         bodies = $.bodies,
-         forceSource = $.forceSource;
-         var bodiesWithSources = findSourcesOfForces(bodies);
+         var bodiesWithSources = findSourcesOfForces(system.bodies);
+         var fs = forceSource(system);
          var acceleratedBodies = A2($List.map,
          $Basics.uncurry(A2(accelerate,
          dt,
-         forceSource)),
+         fs)),
          bodiesWithSources);
          var movedBodies = A2($List.map,
          move(dt),
@@ -1982,7 +1975,7 @@ Elm.Dynamics.make = function (_elm) {
    var System = F2(function (a,b) {
       return {_: {}
              ,bodies: a
-             ,forceSource: b};
+             ,interaction: b};
    });
    _elm.Dynamics.values = {_op: _op
                           ,update: update
@@ -3031,7 +3024,16 @@ Elm.Gravity.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Vector = Elm.Vector.make(_elm);
    var bigG = 6.674e-11;
-   var forceFor = F2(function (target,
+   var potential = F2(function (target,
+   source) {
+      return function () {
+         var distance = $Vector.norm(A2($Vector.minus,
+         source.position,
+         target.position));
+         return $Basics.negate(bigG * source.mass * target.mass / distance);
+      }();
+   });
+   var force = F2(function (target,
    source) {
       return function () {
          var direction = A2($Vector.minus,
@@ -3046,12 +3048,21 @@ Elm.Gravity.make = function (_elm) {
          direction) : $Vector.zero;
       }();
    });
-   var force = F2(function (bodies,
-   target) {
-      return $Vector.sum($List.map(forceFor(target))(bodies));
-   });
+   var interaction = function (_v0) {
+      return function () {
+         return {_: {}
+                ,force: A2(force,
+                _v0.source,
+                _v0.target)
+                ,potential: A2(potential,
+                _v0.source,
+                _v0.target)};
+      }();
+   };
    _elm.Gravity.values = {_op: _op
-                         ,force: force};
+                         ,interaction: interaction
+                         ,force: force
+                         ,potential: potential};
    return _elm.Gravity.values;
 };
 Elm.Html = Elm.Html || {};
@@ -13220,15 +13231,6 @@ Elm.Simulations.First.make = function (_elm) {
                           margin,
                           dimmensions,
                           model.inner.model)
-                          ,energyPlot(_L.fromArray([{ctor: "_Tuple2"
-                                                    ,_0: 0
-                                                    ,_1: 0}
-                                                   ,{ctor: "_Tuple2"
-                                                    ,_0: 100
-                                                    ,_1: 100}
-                                                   ,{ctor: "_Tuple2"
-                                                    ,_0: 200
-                                                    ,_1: 0}]))
                           ,A2(pauseButton,
                           address,
                           model.paused)]);
@@ -13276,7 +13278,7 @@ Elm.Simulations.First.make = function (_elm) {
                                ,velocity: $Vector.zero}]);
    var system = {_: {}
                 ,bodies: planets
-                ,forceSource: $Gravity.force};
+                ,interaction: $Gravity.interaction};
    var tracedSystem = A3($Trace.newWithProjection,
    traceProjection,
    updateSystem,

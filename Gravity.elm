@@ -1,16 +1,19 @@
-module Gravity (force) where
+module Gravity
+  ( interaction, force, potential ) where
 
-import Dynamics exposing (ForceSource, Body)
+import Dynamics exposing (ForceSource, Interaction, Body)
 import Vector exposing (Vector, minus)
 
-force : ForceSource a
-force bodies target =
-  bodies
-    |> List.map (forceFor target)
-    |> Vector.sum
 
-forceFor : Body a -> Body a -> Vector
-forceFor target source =
+interaction : Interaction a
+interaction {source, target} =
+  { force = force source target
+  , potential = potential source target
+  }
+
+
+force : Body a -> Body a -> Vector
+force target source =
   let
     direction = source.position `minus` target.position
     distance = Vector.norm direction
@@ -20,6 +23,15 @@ forceFor target source =
       Vector.scale magnitude direction
     else
       Vector.zero
+
+
+potential : Body a -> Body a -> Float
+potential target source =
+  let
+    distance = Vector.norm <| source.position `minus` target.position
+  in
+    negate <| bigG * source.mass * target.mass / distance
+
 
 bigG : Float
 bigG = 6.674e-11

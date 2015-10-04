@@ -1,5 +1,5 @@
 module Dynamics
-  ( System, Body, ForceSource, update, recenterMass, totalEnergy ) where
+  ( System, Body, ForceSource, Interaction, update, recenterMass, totalEnergy ) where
 
 import Vector exposing (Vector, plus, minus)
 import Time exposing (Time)
@@ -7,7 +7,7 @@ import Time exposing (Time)
 
 type alias System a =
   { bodies : List (Body a)
-  , forceSource : ForceSource a
+  , interaction : Interaction a
   }
 
 
@@ -21,12 +21,24 @@ type alias Body a =
 type alias ForceSource a = List (Body a) -> Body a -> Vector
 
 
+type alias Interaction a =
+  { source : Body a, target : Body a } -> { potential : Float, force : Vector }
+
+
+forceSource : System a -> ForceSource a
+forceSource {interaction} sources target =
+  sources
+    |> List.map (\source -> interaction { source = source, target = target })
+    |> List.map .force
+    |> Vector.sum
+
+
 update : Time -> System a -> System a
 update dt system =
   let
-    {bodies, forceSource} = system
-    bodiesWithSources = findSourcesOfForces bodies
-    acceleratedBodies = List.map (uncurry <| accelerate dt forceSource) bodiesWithSources
+    fs = forceSource system
+    bodiesWithSources = findSourcesOfForces system.bodies
+    acceleratedBodies = List.map (uncurry <| accelerate dt fs) bodiesWithSources
     movedBodies = List.map (move dt) acceleratedBodies
   in
     { system | bodies <- movedBodies }
@@ -35,21 +47,12 @@ update dt system =
 findSourcesOfForces : List (Body a) -> List (List (Body a), Body a)
 findSourcesOfForces bodies =
   let
-    indexedBodies = List.indexedMap (,) bodies
-    bodyWithSources indexedBody =
-      let
-        (index, body) = indexedBody
-        sourceOrNone indexedSource =
-          let
-            (index', source) = indexedSource
-          in
-            if index == index' then Nothing else Just source
-        sources = List.filterMap sourceOrNone indexedBodies
-      in
-        (sources, body)
+    sourcesFor n =
+      List.take (n - 1) bodies ++ List.drop n bodies
+    bodyWtihSources n body =
+      (sourcesFor n, body)
   in
-    List.map bodyWithSources indexedBodies
-
+    List.indexedMap bodyWtihSources bodies
 
 
 totalEnergy : (System a -> Float) -> System a -> Float

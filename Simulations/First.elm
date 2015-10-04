@@ -44,7 +44,7 @@ tracedSystem =
 system : Planet.System
 system =
   { bodies = planets
-  , forceSource = Gravity.force
+  , interaction = Gravity.interaction
   }
 
 
@@ -96,7 +96,7 @@ updateSystem dt =
 view : Int -> (Int, Int) -> Address Action -> Model -> List Html
 view margin dimmensions address model =
   [ Planet.view margin dimmensions model.inner.model
-  , energyPlot [(0, 0), (100, 100), (200, 0)]
+  --, energyPlot [(0, 0), (100, 100), (200, 0)]
   , pauseButton address model.paused
   ]
 
