@@ -12727,32 +12727,6 @@ Elm.Planet.make = function (_elm) {
                         ,view: view};
    return _elm.Planet.values;
 };
-Elm.Plot = Elm.Plot || {};
-Elm.Plot.make = function (_elm) {
-   "use strict";
-   _elm.Plot = _elm.Plot || {};
-   if (_elm.Plot.values)
-   return _elm.Plot.values;
-   var _op = {},
-   _N = Elm.Native,
-   _U = _N.Utils.make(_elm),
-   _L = _N.List.make(_elm),
-   $moduleName = "Plot",
-   $Basics = Elm.Basics.make(_elm),
-   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
-   $List = Elm.List.make(_elm),
-   $Maybe = Elm.Maybe.make(_elm),
-   $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var view = F3(function (lineStyle,
-   dimmensions,
-   plotData) {
-      return $Graphics$Collage.traced(lineStyle)($Graphics$Collage.path(plotData));
-   });
-   _elm.Plot.values = {_op: _op
-                      ,view: view};
-   return _elm.Plot.values;
-};
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
    "use strict";
@@ -13215,9 +13189,7 @@ Elm.Simulations.First.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Simulations.First",
    $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
    $Dynamics = Elm.Dynamics.make(_elm),
-   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Gravity = Elm.Gravity.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
@@ -13225,7 +13197,6 @@ Elm.Simulations.First.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
-   $Plot = Elm.Plot.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
@@ -13242,32 +13213,29 @@ Elm.Simulations.First.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
-   var energyPlot = function (plot) {
-      return function () {
-         var lineStyle = $Graphics$Collage.solid($Color.red);
-         var margin = 10;
-         var height = 400;
-         var width = 600;
-         return $Html.fromElement(A2($Graphics$Collage.collage,
-         width,
-         height)($List.repeat(1)(A2($Plot.view,
-         lineStyle,
-         {ctor: "_Tuple2"
-         ,_0: width
-         ,_1: height})(plot))));
-      }();
-   };
    var view = F4(function (margin,
    dimmensions,
    address,
    model) {
-      return _L.fromArray([A3($Planet.view,
-                          margin,
-                          dimmensions,
-                          model.inner.innerModel)
-                          ,A2(pauseButton,
-                          address,
-                          model.paused)]);
+      return function () {
+         var $ = model.inner,
+         trace = $.trace;
+         var plot = $List.map(function (_v0) {
+            return function () {
+               return {ctor: "_Tuple2"
+                      ,_0: _v0.time
+                      ,_1: _v0.totalEnergy};
+            }();
+         })(trace);
+         var planetSystem = model.inner.innerModel;
+         return _L.fromArray([A3($Planet.view,
+                             margin,
+                             dimmensions,
+                             planetSystem)
+                             ,A2(pauseButton,
+                             address,
+                             model.paused)]);
+      }();
    });
    var updateSystem = function (dt) {
       return function ($) {
@@ -13280,12 +13248,13 @@ Elm.Simulations.First.make = function (_elm) {
       return function () {
          var totalPastTime = $Maybe.withDefault(0.0)(A2($Maybe.map,
          function (_) {
-            return _.totalTime;
+            return _.time;
          },
          prevTrace));
          var totalTime = totalPastTime + dt;
          return {_: {}
-                ,totalTime: totalTime};
+                ,time: totalTime
+                ,totalEnergy: $Dynamics.totalEnergy(newState)};
       }();
    });
    var updateTraced = F2(function (dt,
@@ -13324,11 +13293,14 @@ Elm.Simulations.First.make = function (_elm) {
    updateSystem,
    system);
    var init = A2($Pause.active,
-   updateTraced,
+   $Trace.update,
    tracedSystem);
-   var TracedData = function (a) {
-      return {_: {},totalTime: a};
-   };
+   var TracedData = F2(function (a,
+   b) {
+      return {_: {}
+             ,time: a
+             ,totalEnergy: b};
+   });
    _elm.Simulations.First.values = {_op: _op
                                    ,TracedData: TracedData
                                    ,init: init
@@ -13340,7 +13312,6 @@ Elm.Simulations.First.make = function (_elm) {
                                    ,traceProjection: traceProjection
                                    ,updateSystem: updateSystem
                                    ,view: view
-                                   ,energyPlot: energyPlot
                                    ,pauseButton: pauseButton};
    return _elm.Simulations.First.values;
 };

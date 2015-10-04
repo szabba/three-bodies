@@ -3,10 +3,6 @@ module Simulations.First where
 import Html exposing (..)
 import Html.Events as Events
 
-import Plot exposing (Plot)
-import Graphics.Collage as Collage
-import Color
-
 import Planet exposing (Planet)
 import Dynamics
 import Gravity
@@ -22,7 +18,9 @@ type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
 
 
 type alias TracedData =
-  { totalTime : Float }
+  { time : Float
+  , totalEnergy : Float
+  }
 
 
 type alias Action = Pause.Action Time
@@ -33,7 +31,7 @@ type alias Action = Pause.Action Time
 
 init : Model
 init =
-  Pause.active updateTraced tracedSystem
+  Pause.active Trace.update tracedSystem
 
 
 tracedSystem : Trace TracedData Time Planet.System
@@ -84,10 +82,12 @@ updateTraced dt tracedModel =
 traceProjection : Maybe TracedData -> Time -> Planet.System -> TracedData
 traceProjection prevTrace dt newState =
   let
-    totalPastTime = Maybe.withDefault 0.0 <| Maybe.map .totalTime prevTrace
+    totalPastTime = Maybe.withDefault 0.0 <| Maybe.map .time prevTrace
     totalTime = totalPastTime + dt
   in
-    { totalTime = totalTime }
+    { time = totalTime
+    , totalEnergy = Dynamics.totalEnergy newState
+    }
 
 
 updateSystem : Time -> Planet.System -> Planet.System
@@ -100,24 +100,15 @@ updateSystem dt =
 
 view : Int -> (Int, Int) -> Address Action -> Model -> List Html
 view margin dimmensions address model =
-  [ Planet.view margin dimmensions model.inner.innerModel
-  --, energyPlot [(0, 0), (100, 100), (200, 0)]
-  , pauseButton address model.paused
-  ]
-
-energyPlot : Plot -> Html
-energyPlot plot =
   let
-    width = 600
-    height = 400
-    margin = 10
-    lineStyle = Collage.solid Color.red
+    planetSystem = model.inner.innerModel
+    {trace} = model.inner
+    plot = trace
+      |> List.map (\{time, totalEnergy} -> (time, totalEnergy))
   in
-    plot
-     |> Plot.view lineStyle (width, height)
-     |> List.repeat 1
-     |> Collage.collage width height
-     |> Html.fromElement
+    [ Planet.view margin dimmensions planetSystem
+    , pauseButton address model.paused
+    ]
 
 
 pauseButton : Address Action -> Bool -> Html
