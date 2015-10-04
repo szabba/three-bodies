@@ -1,7 +1,7 @@
 module Gravity
   ( interaction, force, potential ) where
 
-import Dynamics exposing (ForceSource, Interaction, Body)
+import Dynamics exposing (Interaction, Body)
 import Vector exposing (Vector, minus)
 
 
@@ -13,7 +13,7 @@ interaction {source, target} =
 
 
 force : Body a -> Body a -> Vector
-force target source =
+force source target =
   let
     direction = source.position `minus` target.position
     distance = Vector.norm direction
@@ -26,7 +26,7 @@ force target source =
 
 
 potential : Body a -> Body a -> Float
-potential target source =
+potential source target =
   let
     distance = Vector.norm <| source.position `minus` target.position
   in

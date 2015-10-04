@@ -1818,48 +1818,6 @@ Elm.Dynamics.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
    $Vector = Elm.Vector.make(_elm);
-   var move = F2(function (dt,
-   body) {
-      return function () {
-         var $ = body,
-         position = $.position,
-         velocity = $.velocity;
-         var displacement = A2($Vector.scale,
-         dt,
-         velocity);
-         var newPosition = A2($Vector.plus,
-         position,
-         displacement);
-         return _U.replace([["position"
-                            ,newPosition]],
-         body);
-      }();
-   });
-   var accelerate = F4(function (dt,
-   forceSource,
-   allBodies,
-   target) {
-      return function () {
-         var force = A2(forceSource,
-         allBodies,
-         target);
-         var $ = target,
-         mass = $.mass,
-         velocity = $.velocity;
-         var acceleration = A2($Vector.scale,
-         1 / mass,
-         force);
-         var speedup = A2($Vector.scale,
-         dt,
-         acceleration);
-         var newVelocity = A2($Vector.plus,
-         velocity,
-         speedup);
-         return _U.replace([["velocity"
-                            ,newVelocity]],
-         target);
-      }();
-   });
    var weightPosition = function (body) {
       return A2($Vector.scale,
       body.mass,
@@ -1895,22 +1853,55 @@ Elm.Dynamics.make = function (_elm) {
          system);
       }();
    };
-   var bodyKineticEnergy = function (body) {
+   var move = F2(function (dt,
+   body) {
       return function () {
          var $ = body,
-         mass = $.mass,
+         position = $.position,
          velocity = $.velocity;
-         return mass * Math.pow($Vector.norm(velocity),
-         2) / 2;
+         var displacement = A2($Vector.scale,
+         dt,
+         velocity);
+         var newPosition = A2($Vector.plus,
+         position,
+         displacement);
+         return _U.replace([["position"
+                            ,newPosition]],
+         body);
       }();
-   };
-   var totalEnergy = F2(function (potentialEnergy,
-   system) {
+   });
+   var accelerate = F3(function (dt,
+   interaction,
+   _v0) {
       return function () {
-         var kineticEnergy = $List.sum(A2($List.map,
-         bodyKineticEnergy,
-         system.bodies));
-         return kineticEnergy + potentialEnergy(system);
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return function () {
+                 var force = $Vector.sum($List.map(function (_) {
+                    return _.force;
+                 })($List.map(function (source) {
+                    return interaction({_: {}
+                                       ,source: source
+                                       ,target: _v0._1});
+                 })(_v0._0)));
+                 var $ = _v0._1,
+                 mass = $.mass,
+                 velocity = $.velocity;
+                 var acceleration = A2($Vector.scale,
+                 1 / mass,
+                 force);
+                 var speedup = A2($Vector.scale,
+                 dt,
+                 acceleration);
+                 var newVelocity = A2($Vector.plus,
+                 velocity,
+                 speedup);
+                 return _U.replace([["velocity"
+                                    ,newVelocity]],
+                 _v0._1);
+              }();}
+         _U.badCase($moduleName,
+         "between lines 56 and 67");
       }();
    });
    var findSourcesOfForces = function (bodies) {
@@ -1931,28 +1922,14 @@ Elm.Dynamics.make = function (_elm) {
          bodies);
       }();
    };
-   var forceSource = F3(function (_v0,
-   sources,
-   target) {
-      return function () {
-         return $Vector.sum($List.map(function (_) {
-            return _.force;
-         })($List.map(function (source) {
-            return _v0.interaction({_: {}
-                                   ,source: source
-                                   ,target: target});
-         })(sources)));
-      }();
-   });
    var update = F2(function (dt,
    system) {
       return function () {
          var bodiesWithSources = findSourcesOfForces(system.bodies);
-         var fs = forceSource(system);
          var acceleratedBodies = A2($List.map,
-         $Basics.uncurry(A2(accelerate,
+         A2(accelerate,
          dt,
-         fs)),
+         system.interaction),
          bodiesWithSources);
          var movedBodies = A2($List.map,
          move(dt),
@@ -1962,6 +1939,15 @@ Elm.Dynamics.make = function (_elm) {
          system);
       }();
    });
+   var bodyKineticEnergy = function (body) {
+      return function () {
+         var $ = body,
+         mass = $.mass,
+         velocity = $.velocity;
+         return mass * Math.pow($Vector.norm(velocity),
+         2) / 2;
+      }();
+   };
    var Body = F4(function (a,
    b,
    c,
@@ -1980,7 +1966,6 @@ Elm.Dynamics.make = function (_elm) {
    _elm.Dynamics.values = {_op: _op
                           ,update: update
                           ,recenterMass: recenterMass
-                          ,totalEnergy: totalEnergy
                           ,System: System
                           ,Body: Body};
    return _elm.Dynamics.values;
@@ -3024,8 +3009,8 @@ Elm.Gravity.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $Vector = Elm.Vector.make(_elm);
    var bigG = 6.674e-11;
-   var potential = F2(function (target,
-   source) {
+   var potential = F2(function (source,
+   target) {
       return function () {
          var distance = $Vector.norm(A2($Vector.minus,
          source.position,
@@ -3033,8 +3018,8 @@ Elm.Gravity.make = function (_elm) {
          return $Basics.negate(bigG * source.mass * target.mass / distance);
       }();
    });
-   var force = F2(function (target,
-   source) {
+   var force = F2(function (source,
+   target) {
       return function () {
          var direction = A2($Vector.minus,
          source.position,
