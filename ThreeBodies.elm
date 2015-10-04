@@ -71,7 +71,7 @@ view address model =
     header = h1 [] [ text "The three body problem" ]
     problem = p [] [ text problemDescription ]
     firstSimulation = First.view 50 (600, 400) address model
-    content = [ header, problem ] ++ firstSimulation ++ [ todo, Footer.view ]
+    content = [ header, problem ] ++ firstSimulation ++ [ text (toString model), todo, Footer.view ]
   in
     div [ Attributes.id "content" ] content
 
@@ -81,6 +81,8 @@ todo =
   [ "Protect against NaN/infinite forces"
   , "Show a tail / trace trajectories"
   , "Factory reset button"
+  , "Replace Dynamics.ForceSource with a more general Dynamics.Interaction"
+    ++ " that can also caculate the potential energy"
   , "Random configuration button"
   , "Discuss constrained forms of the problem"
   , "Visualize the instability (Lyapunov exponents!)"

@@ -6,7 +6,6 @@ import Vector exposing (Vector)
 import Scale exposing (Meter)
 
 import Html exposing (Html)
-import Graphics.Element as Element
 import Graphics.Collage as Collage
 import Color exposing (red, black)
 
@@ -28,7 +27,6 @@ view margin dimmensions system =
   in
     [planetShapes]
       |> Collage.collage width height
-      |> Element.color black
       |> Html.fromElement
 
 

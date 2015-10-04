@@ -1,5 +1,5 @@
 module Dynamics
-  ( System, Body, ForceSource, update, recenterMass ) where
+  ( System, Body, ForceSource, update, recenterMass, totalEnergy ) where
 
 import Vector exposing (Vector, plus, minus)
 import Time exposing (Time)
@@ -29,6 +29,22 @@ update dt system =
     movedBodies = List.map (move dt) acceleratedBodies
   in
     { system | bodies <- movedBodies }
+
+
+totalEnergy : (System a -> Float) -> System a -> Float
+totalEnergy potentialEnergy system =
+  let
+    kineticEnergy = List.sum <| List.map bodyKineticEnergy system.bodies
+  in
+    kineticEnergy + potentialEnergy system
+
+
+bodyKineticEnergy : Body a -> Float
+bodyKineticEnergy body =
+  let
+    {mass, velocity} = body
+  in
+    mass * Vector.norm velocity ^ 2 / 2
 
 
 recenterMass : System a -> System a

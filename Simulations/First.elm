@@ -3,17 +3,22 @@ module Simulations.First where
 import Html exposing (..)
 import Html.Events as Events
 
+import Plot exposing (Plot)
+import Graphics.Collage as Collage
+import Color
+
 import Planet exposing (Planet)
 import Dynamics
 import Gravity
 import Vector
 
+import Trace exposing (Trace)
 import Pause
 import Time exposing (Time)
 import Signal exposing (Address)
 
 
-type alias Model = Pause.Model Time Planet.System
+type alias Model = Pause.Model Time (Trace Float Time Planet.System)
 
 
 type alias Action = Pause.Action Time
@@ -24,7 +29,16 @@ type alias Action = Pause.Action Time
 
 init : Model
 init =
-  Pause.active (\dt -> Dynamics.update dt >> Dynamics.recenterMass) system
+  Pause.active Trace.update tracedSystem
+
+
+tracedSystem : Trace Float Time Planet.System
+tracedSystem =
+  let
+    updateSystem dt = Dynamics.update dt >> Dynamics.recenterMass
+    projection _ _ = Dynamics.totalEnergy (always 0.0)
+  in
+    Trace.newWithProjection projection updateSystem system
 
 
 system : Planet.System
@@ -67,9 +81,24 @@ update =
 
 view : Int -> (Int, Int) -> Address Action -> Model -> List Html
 view margin dimmensions address model =
-  [ Planet.view margin dimmensions model.inner
+  [ Planet.view margin dimmensions model.inner.model
+  , energyPlot [(0, 0), (100, 100), (200, 0)]
   , pauseButton address model.paused
   ]
+
+energyPlot : Plot -> Html
+energyPlot plot =
+  let
+    width = 600
+    height = 400
+    margin = 10
+    lineStyle = Collage.solid Color.red
+  in
+    plot
+     |> Plot.view lineStyle (width, height)
+     |> List.repeat 1
+     |> Collage.collage width height
+     |> Html.fromElement
 
 
 pauseButton : Address Action -> Bool -> Html

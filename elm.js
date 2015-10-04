@@ -1895,6 +1895,24 @@ Elm.Dynamics.make = function (_elm) {
          system);
       }();
    };
+   var bodyKineticEnergy = function (body) {
+      return function () {
+         var $ = body,
+         mass = $.mass,
+         velocity = $.velocity;
+         return mass * Math.pow($Vector.norm(velocity),
+         2) / 2;
+      }();
+   };
+   var totalEnergy = F2(function (potentialEnergy,
+   system) {
+      return function () {
+         var kineticEnergy = $List.sum(A2($List.map,
+         bodyKineticEnergy,
+         system.bodies));
+         return kineticEnergy + potentialEnergy(system);
+      }();
+   });
    var update = F2(function (dt,
    system) {
       return function () {
@@ -1933,6 +1951,7 @@ Elm.Dynamics.make = function (_elm) {
    _elm.Dynamics.values = {_op: _op
                           ,update: update
                           ,recenterMass: recenterMass
+                          ,totalEnergy: totalEnergy
                           ,System: System
                           ,Body: Body};
    return _elm.Dynamics.values;
@@ -12536,7 +12555,6 @@ Elm.Planet.make = function (_elm) {
    $Color = Elm.Color.make(_elm),
    $Dynamics = Elm.Dynamics.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
-   $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
@@ -12619,14 +12637,40 @@ Elm.Planet.make = function (_elm) {
          var $ = dimmensions,
          width = $._0,
          height = $._1;
-         return $Html.fromElement($Graphics$Element.color($Color.black)(A2($Graphics$Collage.collage,
+         return $Html.fromElement(A2($Graphics$Collage.collage,
          width,
-         height)(_L.fromArray([planetShapes]))));
+         height)(_L.fromArray([planetShapes])));
       }();
    });
    _elm.Planet.values = {_op: _op
                         ,view: view};
    return _elm.Planet.values;
+};
+Elm.Plot = Elm.Plot || {};
+Elm.Plot.make = function (_elm) {
+   "use strict";
+   _elm.Plot = _elm.Plot || {};
+   if (_elm.Plot.values)
+   return _elm.Plot.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Plot",
+   $Basics = Elm.Basics.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var view = F3(function (lineStyle,
+   dimmensions,
+   plotData) {
+      return $Graphics$Collage.traced(lineStyle)($Graphics$Collage.path(plotData));
+   });
+   _elm.Plot.values = {_op: _op
+                      ,view: view};
+   return _elm.Plot.values;
 };
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
@@ -13090,7 +13134,9 @@ Elm.Simulations.First.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Simulations.First",
    $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
    $Dynamics = Elm.Dynamics.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Gravity = Elm.Gravity.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
@@ -13098,9 +13144,11 @@ Elm.Simulations.First.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
+   $Plot = Elm.Plot.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
+   $Trace = Elm.Trace.make(_elm),
    $Vector = Elm.Vector.make(_elm);
    var pauseButton = F2(function (address,
    paused) {
@@ -13113,6 +13161,21 @@ Elm.Simulations.First.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
+   var energyPlot = function (plot) {
+      return function () {
+         var lineStyle = $Graphics$Collage.solid($Color.red);
+         var margin = 10;
+         var height = 400;
+         var width = 600;
+         return $Html.fromElement(A2($Graphics$Collage.collage,
+         width,
+         height)($List.repeat(1)(A2($Plot.view,
+         lineStyle,
+         {ctor: "_Tuple2"
+         ,_0: width
+         ,_1: height})(plot))));
+      }();
+   };
    var view = F4(function (margin,
    dimmensions,
    address,
@@ -13120,7 +13183,16 @@ Elm.Simulations.First.make = function (_elm) {
       return _L.fromArray([A3($Planet.view,
                           margin,
                           dimmensions,
-                          model.inner)
+                          model.inner.model)
+                          ,energyPlot(_L.fromArray([{ctor: "_Tuple2"
+                                                    ,_0: 0
+                                                    ,_1: 0}
+                                                   ,{ctor: "_Tuple2"
+                                                    ,_0: 100
+                                                    ,_1: 100}
+                                                   ,{ctor: "_Tuple2"
+                                                    ,_0: 200
+                                                    ,_1: 0}]))
                           ,A2(pauseButton,
                           address,
                           model.paused)]);
@@ -13150,19 +13222,36 @@ Elm.Simulations.First.make = function (_elm) {
    var system = {_: {}
                 ,bodies: planets
                 ,forceSource: $Gravity.force};
-   var init = A2($Pause.active,
-   function (dt) {
-      return function ($) {
-         return $Dynamics.recenterMass($Dynamics.update(dt)($));
+   var tracedSystem = function () {
+      var projection = F2(function (_v0,
+      _v1) {
+         return function () {
+            return function () {
+               return $Dynamics.totalEnergy($Basics.always(0.0));
+            }();
+         }();
+      });
+      var updateSystem = function (dt) {
+         return function ($) {
+            return $Dynamics.recenterMass($Dynamics.update(dt)($));
+         };
       };
-   },
-   system);
+      return A3($Trace.newWithProjection,
+      projection,
+      updateSystem,
+      system);
+   }();
+   var init = A2($Pause.active,
+   $Trace.update,
+   tracedSystem);
    _elm.Simulations.First.values = {_op: _op
                                    ,init: init
+                                   ,tracedSystem: tracedSystem
                                    ,system: system
                                    ,planets: planets
                                    ,update: update
                                    ,view: view
+                                   ,energyPlot: energyPlot
                                    ,pauseButton: pauseButton};
    return _elm.Simulations.First.values;
 };
@@ -13726,6 +13815,9 @@ Elm.ThreeBodies.make = function (_elm) {
    })(_L.fromArray(["Protect against NaN/infinite forces"
                    ,"Show a tail / trace trajectories"
                    ,"Factory reset button"
+                   ,A2($Basics._op["++"],
+                   "Replace Dynamics.ForceSource with a more general Dynamics.Interaction",
+                   " that can also caculate the potential energy")
                    ,"Random configuration button"
                    ,"Discuss constrained forms of the problem"
                    ,"Visualize the instability (Lyapunov exponents!)"])));
@@ -13749,7 +13841,8 @@ Elm.ThreeBodies.make = function (_elm) {
          _L.fromArray([header,problem]),
          A2($Basics._op["++"],
          firstSimulation,
-         _L.fromArray([todo
+         _L.fromArray([$Html.text($Basics.toString(model))
+                      ,todo
                       ,$Layout$Footer.view])));
          var system = model.inner;
          return A2($Html.div,
@@ -13870,6 +13963,93 @@ Elm.Time.make = function (_elm) {
                       ,delay: delay
                       ,since: since};
    return _elm.Time.values;
+};
+Elm.Trace = Elm.Trace || {};
+Elm.Trace.make = function (_elm) {
+   "use strict";
+   _elm.Trace = _elm.Trace || {};
+   if (_elm.Trace.values)
+   return _elm.Trace.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Trace",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var update = F2(function (action,
+   traced) {
+      return function () {
+         var $ = traced,
+         model = $.model,
+         update = $.update,
+         trace = $.trace,
+         project = $.project;
+         var updatedModel = A2(update,
+         action,
+         model);
+         var newTrace = A2($List._op["::"],
+         A3(project,
+         $List.head(trace),
+         action,
+         updatedModel),
+         trace);
+         return _U.replace([["model"
+                            ,updatedModel]
+                           ,["trace",newTrace]],
+         traced);
+      }();
+   });
+   var recordModel = F3(function (_v0,
+   _v1,
+   model) {
+      return function () {
+         return function () {
+            return model;
+         }();
+      }();
+   });
+   var new$ = F4(function (initialTrace,
+   projection,
+   update,
+   model) {
+      return {_: {}
+             ,model: model
+             ,project: projection
+             ,trace: initialTrace
+             ,update: update};
+   });
+   var newWithProjection = new$(_L.fromArray([]));
+   var newWithTrace = function (initialTrace) {
+      return A2(new$,
+      initialTrace,
+      recordModel);
+   };
+   var $new = A2(new$,
+   _L.fromArray([]),
+   recordModel);
+   var Trace = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,model: a
+             ,project: d
+             ,trace: c
+             ,update: b};
+   });
+   _elm.Trace.values = {_op: _op
+                       ,$new: $new
+                       ,newWithTrace: newWithTrace
+                       ,newWithProjection: newWithProjection
+                       ,new$: new$
+                       ,recordModel: recordModel
+                       ,update: update
+                       ,Trace: Trace};
+   return _elm.Trace.values;
 };
 Elm.Transform2D = Elm.Transform2D || {};
 Elm.Transform2D.make = function (_elm) {
