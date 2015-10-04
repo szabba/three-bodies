@@ -25,10 +25,31 @@ update : Time -> System a -> System a
 update dt system =
   let
     {bodies, forceSource} = system
-    acceleratedBodies = List.map (accelerate dt forceSource bodies) bodies
+    bodiesWithSources = findSourcesOfForces bodies
+    acceleratedBodies = List.map (uncurry <| accelerate dt forceSource) bodiesWithSources
     movedBodies = List.map (move dt) acceleratedBodies
   in
     { system | bodies <- movedBodies }
+
+
+findSourcesOfForces : List (Body a) -> List (List (Body a), Body a)
+findSourcesOfForces bodies =
+  let
+    indexedBodies = List.indexedMap (,) bodies
+    bodyWithSources indexedBody =
+      let
+        (index, body) = indexedBody
+        sourceOrNone indexedSource =
+          let
+            (index', source) = indexedSource
+          in
+            if index == index' then Nothing else Just source
+        sources = List.filterMap sourceOrNone indexedBodies
+      in
+        (sources, body)
+  in
+    List.map bodyWithSources indexedBodies
+
 
 
 totalEnergy : (System a -> Float) -> System a -> Float
@@ -57,6 +78,7 @@ recenterMass system =
   in
     { system | bodies <- movedBodies }
 
+
 findCenterOfMass : List (Body a) -> Vector
 findCenterOfMass bodies =
   let
@@ -67,9 +89,11 @@ findCenterOfMass bodies =
       |> Vector.sum
       |> Vector.scale (1 / totalMass)
 
+
 weightPosition : Body a -> Vector
 weightPosition body =
   Vector.scale body.mass body.position
+
 
 accelerate : Time -> ForceSource a -> List (Body a) -> Body a -> Body a
 accelerate dt forceSource allBodies target =

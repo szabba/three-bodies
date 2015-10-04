@@ -84,7 +84,6 @@ todo =
   , "Replace Dynamics.ForceSource with a more general Dynamics.Interaction"
     ++ " that can also caculate the potential energy"
   , "Make force sources only calculate the force between two bodies"
-  , "Ensure that a force from the body on itself never gets calculated"
   , "Replace force sources with interaction (returning both the force and"
     ++ " potential energy)"
   , "Random configuration button"

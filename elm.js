@@ -1913,18 +1913,54 @@ Elm.Dynamics.make = function (_elm) {
          return kineticEnergy + potentialEnergy(system);
       }();
    });
+   var findSourcesOfForces = function (bodies) {
+      return function () {
+         var indexedBodies = A2($List.indexedMap,
+         F2(function (v0,v1) {
+            return {ctor: "_Tuple2"
+                   ,_0: v0
+                   ,_1: v1};
+         }),
+         bodies);
+         var bodyWithSources = function (indexedBody) {
+            return function () {
+               var $ = indexedBody,
+               index = $._0,
+               body = $._1;
+               var sourceOrNone = function (indexedSource) {
+                  return function () {
+                     var $ = indexedSource,
+                     index$ = $._0,
+                     source = $._1;
+                     return _U.eq(index,
+                     index$) ? $Maybe.Nothing : $Maybe.Just(source);
+                  }();
+               };
+               var sources = A2($List.filterMap,
+               sourceOrNone,
+               indexedBodies);
+               return {ctor: "_Tuple2"
+                      ,_0: sources
+                      ,_1: body};
+            }();
+         };
+         return A2($List.map,
+         bodyWithSources,
+         indexedBodies);
+      }();
+   };
    var update = F2(function (dt,
    system) {
       return function () {
          var $ = system,
          bodies = $.bodies,
          forceSource = $.forceSource;
+         var bodiesWithSources = findSourcesOfForces(bodies);
          var acceleratedBodies = A2($List.map,
-         A3(accelerate,
+         $Basics.uncurry(A2(accelerate,
          dt,
-         forceSource,
-         bodies),
-         bodies);
+         forceSource)),
+         bodiesWithSources);
          var movedBodies = A2($List.map,
          move(dt),
          acceleratedBodies);
@@ -13829,7 +13865,6 @@ Elm.ThreeBodies.make = function (_elm) {
                    "Replace Dynamics.ForceSource with a more general Dynamics.Interaction",
                    " that can also caculate the potential energy")
                    ,"Make force sources only calculate the force between two bodies"
-                   ,"Ensure that a force from the body on itself never gets calculated"
                    ,A2($Basics._op["++"],
                    "Replace force sources with interaction (returning both the force and",
                    " potential energy)")
