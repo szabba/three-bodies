@@ -33,7 +33,7 @@ type alias Action = Pause.Action Time
 
 init : Model
 init =
-  Pause.active Trace.update tracedSystem
+  Pause.active updateTraced tracedSystem
 
 
 tracedSystem : Trace TracedData Time Planet.System
@@ -76,6 +76,11 @@ update =
   Pause.update
 
 
+updateTraced : Time -> Trace TracedData Time Planet.System -> Trace TracedData Time Planet.System
+updateTraced dt tracedModel =
+  Trace.limitTrace 10 <| Trace.update dt tracedModel
+
+
 traceProjection : Maybe TracedData -> Time -> Planet.System -> TracedData
 traceProjection prevTrace dt newState =
   let
@@ -95,7 +100,7 @@ updateSystem dt =
 
 view : Int -> (Int, Int) -> Address Action -> Model -> List Html
 view margin dimmensions address model =
-  [ Planet.view margin dimmensions model.inner.model
+  [ Planet.view margin dimmensions model.inner.innerModel
   --, energyPlot [(0, 0), (100, 100), (200, 0)]
   , pauseButton address model.paused
   ]

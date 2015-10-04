@@ -1,10 +1,11 @@
 module Trace
-  ( Trace, new, newWithTrace, newWithProjection, new'
-  , recordModel, update ) where
+  ( Trace, new, newWithTrace, newWithProjection, new', recordModel
+  , update, limitTrace
+  ) where
 
 
 type alias Trace t a m =
-  { model : m
+  { innerModel : m
   , update : a -> m -> m
   , trace : List t
   , project : Maybe t -> a -> m -> t
@@ -27,8 +28,8 @@ newWithProjection =
 
 
 new' : List t -> (Maybe t -> a -> m -> t) -> (a -> m -> m) -> m -> Trace t a m
-new' initialTrace projection update model =
-  { model = model
+new' initialTrace projection update innerModel =
+  { innerModel = innerModel
   , update = update
   , trace = initialTrace
   , project = projection
@@ -36,18 +37,20 @@ new' initialTrace projection update model =
 
 
 recordModel : Maybe m -> a -> m -> m
-recordModel _ _ model =
-  model
+recordModel _ _ innerModel =
+  innerModel
 
 
 update : a -> Trace t a m -> Trace t a m
-update action traced =
+update action model =
   let
-    {model, update, trace, project} = traced
-    updatedModel = update action model
+    {innerModel, update, trace, project} = model
+    updatedModel = update action innerModel
     newTrace = project (List.head trace) action updatedModel :: trace
   in
-    { traced
-    | model <- updatedModel
-    , trace <- newTrace
-    }
+    { model | innerModel <- updatedModel , trace <- newTrace }
+
+
+limitTrace : Int -> Trace t a m -> Trace t a m
+limitTrace maxLength model =
+  { model | trace <- List.take maxLength model.trace }

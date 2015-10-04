@@ -13215,7 +13215,7 @@ Elm.Simulations.First.make = function (_elm) {
       return _L.fromArray([A3($Planet.view,
                           margin,
                           dimmensions,
-                          model.inner.model)
+                          model.inner.innerModel)
                           ,A2(pauseButton,
                           address,
                           model.paused)]);
@@ -13238,6 +13238,12 @@ Elm.Simulations.First.make = function (_elm) {
          return {_: {}
                 ,totalTime: totalTime};
       }();
+   });
+   var updateTraced = F2(function (dt,
+   tracedModel) {
+      return $Trace.limitTrace(10)(A2($Trace.update,
+      dt,
+      tracedModel));
    });
    var update = $Pause.update;
    var planets = _L.fromArray([{_: {}
@@ -13269,7 +13275,7 @@ Elm.Simulations.First.make = function (_elm) {
    updateSystem,
    system);
    var init = A2($Pause.active,
-   $Trace.update,
+   updateTraced,
    tracedSystem);
    var TracedData = function (a) {
       return {_: {},totalTime: a};
@@ -13281,6 +13287,7 @@ Elm.Simulations.First.make = function (_elm) {
                                    ,system: system
                                    ,planets: planets
                                    ,update: update
+                                   ,updateTraced: updateTraced
                                    ,traceProjection: traceProjection
                                    ,updateSystem: updateSystem
                                    ,view: view
@@ -14017,44 +14024,52 @@ Elm.Trace.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var limitTrace = F2(function (maxLength,
+   model) {
+      return _U.replace([["trace"
+                         ,A2($List.take,
+                         maxLength,
+                         model.trace)]],
+      model);
+   });
    var update = F2(function (action,
-   traced) {
+   model) {
       return function () {
-         var $ = traced,
-         model = $.model,
+         var $ = model,
+         innerModel = $.innerModel,
          update = $.update,
          trace = $.trace,
          project = $.project;
          var updatedModel = A2(update,
          action,
-         model);
+         innerModel);
          var newTrace = A2($List._op["::"],
          A3(project,
          $List.head(trace),
          action,
          updatedModel),
          trace);
-         return _U.replace([["model"
+         return _U.replace([["innerModel"
                             ,updatedModel]
                            ,["trace",newTrace]],
-         traced);
+         model);
       }();
    });
    var recordModel = F3(function (_v0,
    _v1,
-   model) {
+   innerModel) {
       return function () {
          return function () {
-            return model;
+            return innerModel;
          }();
       }();
    });
    var new$ = F4(function (initialTrace,
    projection,
    update,
-   model) {
+   innerModel) {
       return {_: {}
-             ,model: model
+             ,innerModel: innerModel
              ,project: projection
              ,trace: initialTrace
              ,update: update};
@@ -14073,7 +14088,7 @@ Elm.Trace.make = function (_elm) {
    c,
    d) {
       return {_: {}
-             ,model: a
+             ,innerModel: a
              ,project: d
              ,trace: c
              ,update: b};
@@ -14085,6 +14100,7 @@ Elm.Trace.make = function (_elm) {
                        ,new$: new$
                        ,recordModel: recordModel
                        ,update: update
+                       ,limitTrace: limitTrace
                        ,Trace: Trace};
    return _elm.Trace.values;
 };
