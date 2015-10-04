@@ -1,5 +1,7 @@
 module Dynamics
-  ( System, Body, Interaction, update, recenterMass ) where
+  ( System, Body, Interaction, update, recenterMass, totalEnergy, kineticEnergy
+  , potentialEnergy
+  ) where
 
 import Vector exposing (Vector, plus, minus)
 import Time exposing (Time)
@@ -22,12 +24,41 @@ type alias Interaction a =
   { source : Body a, target : Body a } -> { potential : Float, force : Vector }
 
 
+-- ENERGY
+
+
+totalEnergy : System a -> Float
+totalEnergy system =
+  potentialEnergy system + kineticEnergy system
+
+
+potentialEnergy : System a -> Float
+potentialEnergy {bodies, interaction} =
+  let
+    pairsWithFirst i body = List.map ((,) body) <| List.drop (i + 1) bodies
+    pairs = List.concat <| List.indexedMap pairsWithFirst bodies
+    pairwise (source, target) =
+      { source = source, target = target }
+        |> interaction
+        |> .potential
+  in
+    List.sum <| List.map pairwise pairs
+
+
+kineticEnergy : System a -> Float
+kineticEnergy {bodies} =
+  List.sum <| List.map bodyKineticEnergy bodies
+
+
 bodyKineticEnergy : Body a -> Float
 bodyKineticEnergy body =
   let
     {mass, velocity} = body
   in
     mass * Vector.norm velocity ^ 2 / 2
+
+
+-- UPDATE
 
 
 update : Time -> System a -> System a
@@ -75,6 +106,9 @@ move dt body =
     newPosition = position `plus` displacement
   in
     { body | position <- newPosition }
+
+
+-- CENTER OF MASS
 
 
 recenterMass : System a -> System a

@@ -1901,7 +1901,7 @@ Elm.Dynamics.make = function (_elm) {
                  _v0._1);
               }();}
          _U.badCase($moduleName,
-         "between lines 56 and 67");
+         "between lines 87 and 98");
       }();
    });
    var findSourcesOfForces = function (bodies) {
@@ -1948,6 +1948,52 @@ Elm.Dynamics.make = function (_elm) {
          2) / 2;
       }();
    };
+   var kineticEnergy = function (_v4) {
+      return function () {
+         return $List.sum(A2($List.map,
+         bodyKineticEnergy,
+         _v4.bodies));
+      }();
+   };
+   var potentialEnergy = function (_v6) {
+      return function () {
+         return function () {
+            var pairwise = function (_v8) {
+               return function () {
+                  switch (_v8.ctor)
+                  {case "_Tuple2":
+                     return function (_) {
+                          return _.potential;
+                       }(_v6.interaction({_: {}
+                                         ,source: _v8._0
+                                         ,target: _v8._1}));}
+                  _U.badCase($moduleName,
+                  "between lines 41 and 43");
+               }();
+            };
+            var pairsWithFirst = F2(function (i,
+            body) {
+               return $List.map(F2(function (v0,
+               v1) {
+                  return {ctor: "_Tuple2"
+                         ,_0: v0
+                         ,_1: v1};
+               })(body))(A2($List.drop,
+               i + 1,
+               _v6.bodies));
+            });
+            var pairs = $List.concat(A2($List.indexedMap,
+            pairsWithFirst,
+            _v6.bodies));
+            return $List.sum(A2($List.map,
+            pairwise,
+            pairs));
+         }();
+      }();
+   };
+   var totalEnergy = function (system) {
+      return potentialEnergy(system) + kineticEnergy(system);
+   };
    var Body = F4(function (a,
    b,
    c,
@@ -1966,6 +2012,9 @@ Elm.Dynamics.make = function (_elm) {
    _elm.Dynamics.values = {_op: _op
                           ,update: update
                           ,recenterMass: recenterMass
+                          ,totalEnergy: totalEnergy
+                          ,kineticEnergy: kineticEnergy
+                          ,potentialEnergy: potentialEnergy
                           ,System: System
                           ,Body: Body};
    return _elm.Dynamics.values;
