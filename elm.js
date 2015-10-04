@@ -13904,13 +13904,7 @@ Elm.ThreeBodies.make = function (_elm) {
    })(_L.fromArray(["Protect against NaN/infinite forces"
                    ,"Show a tail / trace trajectories"
                    ,"Factory reset button"
-                   ,A2($Basics._op["++"],
-                   "Replace Dynamics.ForceSource with a more general Dynamics.Interaction",
-                   " that can also caculate the potential energy")
-                   ,"Make force sources only calculate the force between two bodies"
-                   ,A2($Basics._op["++"],
-                   "Replace force sources with interaction (returning both the force and",
-                   " potential energy)")
+                   ,"Plot total energy over time"
                    ,"Random configuration button"
                    ,"Discuss constrained forms of the problem"
                    ,"Visualize the instability (Lyapunov exponents!)"])));
