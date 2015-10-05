@@ -13253,6 +13253,7 @@ Elm.Simulations.First.make = function (_elm) {
          prevTrace));
          var totalTime = totalPastTime + dt;
          return {_: {}
+                ,dt: dt
                 ,time: totalTime
                 ,totalEnergy: $Dynamics.totalEnergy(newState)};
       }();
@@ -13295,11 +13296,13 @@ Elm.Simulations.First.make = function (_elm) {
    var init = A2($Pause.active,
    $Trace.update,
    tracedSystem);
-   var TracedData = F2(function (a,
-   b) {
+   var TracedData = F3(function (a,
+   b,
+   c) {
       return {_: {}
+             ,dt: b
              ,time: a
-             ,totalEnergy: b};
+             ,totalEnergy: c};
    });
    _elm.Simulations.First.values = {_op: _op
                                    ,TracedData: TracedData

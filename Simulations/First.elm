@@ -2,6 +2,7 @@ module Simulations.First where
 
 import Html exposing (..)
 import Html.Events as Events
+import Signal exposing (Address)
 
 import Planet exposing (Planet)
 import Dynamics
@@ -11,7 +12,6 @@ import Vector
 import Trace exposing (Trace)
 import Pause
 import Time exposing (Time)
-import Signal exposing (Address)
 
 
 type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
@@ -19,6 +19,7 @@ type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
 
 type alias TracedData =
   { time : Float
+  , dt : Float
   , totalEnergy : Float
   }
 
@@ -86,6 +87,7 @@ traceProjection prevTrace dt newState =
     totalTime = totalPastTime + dt
   in
     { time = totalTime
+    , dt = dt
     , totalEnergy = Dynamics.totalEnergy newState
     }
 
