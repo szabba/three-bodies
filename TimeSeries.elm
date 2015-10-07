@@ -7,49 +7,42 @@ import Maybe
 {-| A TimeSeries stores historical data describing how a scalar value has
 changed throughout time.
 -}
-type TimeSeries =
-  TimeSeries
-    { totalTime : Maybe Float
-    , maxValue : Maybe Float
-    , minValue : Maybe Float
-    , dataPoints : List (Float, Float)
-    }
+type alias TimeSeries =
+  { totalTime : Maybe Float
+  , maxValue : Maybe Float
+  , minValue : Maybe Float
+  , dataPoints : List (Float, Float)
+  }
 
 
 {-| A time series that doesn't contain any data yet.
 -}
 empty : TimeSeries
 empty =
-  TimeSeries
-    { totalTime = Nothing
-    , minValue = Nothing
-    , maxValue = Nothing
-    , dataPoints = []
-    }
+  { totalTime = Nothing
+  , minValue = Nothing
+  , maxValue = Nothing
+  , dataPoints = []
+  }
 
 {-| Appends a data point to a time series. -}
 append : TimeSeries -> { dt : Float, value : Float } -> TimeSeries
 append timeSeries {dt, value} =
   let
-    record = case timeSeries of TimeSeries ts -> ts
-    {totalTime, minValue, maxValue, dataPoints} = record
-    newDataPoint = (dt, value)
+    {totalTime, minValue, maxValue, dataPoints} = timeSeries
+    newTotalTime = updateMaybe dt (+) totalTime
+    newDataPoint = (newTotalTime, value)
   in
-    TimeSeries
-      { record
-      | totalTime <- updateMaybe dt (+) totalTime
-      , minValue <- updateMaybe value min minValue
-      , maxValue <- updateMaybe value max maxValue
-      , dataPoints <- newDataPoint :: dataPoints
-      }
+    { timeSeries
+    | totalTime <- Maybe.Just newTotalTime
+    , minValue <- Maybe.Just <| updateMaybe value min minValue
+    , maxValue <- Maybe.Just <| updateMaybe value max maxValue
+    , dataPoints <- dataPoints ++ [newDataPoint]
+    }
 
 
-{-| Update a monoidal value wrapped in a maybe using the specified mappend and
-incoming value. If the maybe is empty, the new value gets stored in the result.
--}
-updateMaybe : a -> (a -> a -> a) -> Maybe a -> Maybe a
+updateMaybe : a -> (a -> a -> a) -> Maybe a -> a
 updateMaybe new mappend old =
   old
     |> Maybe.map (mappend new)
     |> Maybe.withDefault new
-    |> Maybe.Just
