@@ -1,17 +1,22 @@
 module Simulations.First where
 
 import Html exposing (..)
+
 import Html.Events as Events
 import Signal exposing (Address)
+
+import Plot
+
+import Trace exposing (Trace)
+import Pause
+import Time exposing (Time)
 
 import Planet exposing (Planet)
 import Dynamics
 import Gravity
 import Vector
 
-import Trace exposing (Trace)
-import Pause
-import Time exposing (Time)
+import TimeSeries exposing (TimeSeries)
 
 
 type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
@@ -21,6 +26,8 @@ type alias TracedData =
   { time : Float
   , dt : Float
   , totalEnergy : Float
+  , potentialEnergy : Float
+  , kineticEnergy : Float
   }
 
 
@@ -85,10 +92,15 @@ traceProjection prevTrace dt newState =
   let
     totalPastTime = Maybe.withDefault 0.0 <| Maybe.map .time prevTrace
     totalTime = totalPastTime + dt
+    potentialEnergy = Dynamics.potentialEnergy newState
+    kineticEnergy = Dynamics.kineticEnergy newState
+    totalEnergy = potentialEnergy + kineticEnergy
   in
     { time = totalTime
     , dt = dt
-    , totalEnergy = Dynamics.totalEnergy newState
+    , totalEnergy = totalEnergy
+    , potentialEnergy = potentialEnergy
+    , kineticEnergy = kineticEnergy
     }
 
 
@@ -105,12 +117,27 @@ view margin dimmensions address model =
   let
     planetSystem = model.inner.innerModel
     {trace} = model.inner
-    plot = trace
-      |> List.map (\{time, totalEnergy} -> (time, totalEnergy))
   in
     [ Planet.view margin dimmensions planetSystem
     , pauseButton address model.paused
+    , Plot.view dimmensions <| energyTS .totalEnergy trace
+    , Plot.view dimmensions <| energyTS .potentialEnergy trace
+    , Plot.view dimmensions <| energyTS .kineticEnergy trace
+    , p [] [ text << toString <| model.inner.innerModel ]
+    , p [] [ text << toString << List.head <| model.inner.trace ]
     ]
+
+
+energyTS : (TracedData -> Float) -> List TracedData -> TimeSeries
+energyTS proj trace =
+  let
+    traceDatumToTSDatum datum =
+      { dt = datum.dt, value = proj datum }
+  in
+    trace
+      |> List.reverse
+      |> List.map traceDatumToTSDatum
+      |> List.foldl (flip TimeSeries.append) TimeSeries.empty
 
 
 pauseButton : Address Action -> Bool -> Html

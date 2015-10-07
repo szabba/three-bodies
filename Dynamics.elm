@@ -1,7 +1,6 @@
 module Dynamics
-  ( System, Body, Interaction, update, recenterMass, totalEnergy, kineticEnergy
-  , potentialEnergy
-  ) where
+  ( System, Body, Interaction, update, recenterMass, totalEnergy
+  , potentialEnergy, kineticEnergy ) where
 
 import Vector exposing (Vector, plus, minus)
 import Time exposing (Time)
@@ -43,6 +42,7 @@ potentialEnergy {bodies, interaction} =
         |> .potential
   in
     List.sum <| List.map pairwise pairs
+
 
 
 kineticEnergy : System a -> Float

@@ -1968,7 +1968,7 @@ Elm.Dynamics.make = function (_elm) {
                                          ,source: _v8._0
                                          ,target: _v8._1}));}
                   _U.badCase($moduleName,
-                  "between lines 41 and 43");
+                  "between lines 40 and 42");
                }();
             };
             var pairsWithFirst = F2(function (i,
@@ -2013,8 +2013,8 @@ Elm.Dynamics.make = function (_elm) {
                           ,update: update
                           ,recenterMass: recenterMass
                           ,totalEnergy: totalEnergy
-                          ,kineticEnergy: kineticEnergy
                           ,potentialEnergy: potentialEnergy
+                          ,kineticEnergy: kineticEnergy
                           ,System: System
                           ,Body: Body};
    return _elm.Dynamics.values;
@@ -12727,6 +12727,87 @@ Elm.Planet.make = function (_elm) {
                         ,view: view};
    return _elm.Planet.values;
 };
+Elm.Plot = Elm.Plot || {};
+Elm.Plot.make = function (_elm) {
+   "use strict";
+   _elm.Plot = _elm.Plot || {};
+   if (_elm.Plot.values)
+   return _elm.Plot.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Plot",
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $TimeSeries = Elm.TimeSeries.make(_elm);
+   var view = F2(function (dimmensions,
+   ts) {
+      return function () {
+         var lineStyle = $Graphics$Collage.solid($Color.black);
+         var totalTime = A2($Maybe.withDefault,
+         0.0,
+         ts.totalTime);
+         var minValue = A2($Maybe.withDefault,
+         0.0,
+         ts.minValue);
+         var maxValue = A2($Maybe.withDefault,
+         0.0,
+         ts.maxValue);
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
+         var scaleVertical = function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple2":
+                  return {ctor: "_Tuple2"
+                         ,_0: _v0._0
+                         ,_1: (_v0._1 - minValue) * $Basics.toFloat(height) / (maxValue - minValue)};}
+               _U.badCase($moduleName,
+               "on line 17, column 29 to 87");
+            }();
+         };
+         var scaleHorizontal = function (_v4) {
+            return function () {
+               switch (_v4.ctor)
+               {case "_Tuple2":
+                  return {ctor: "_Tuple2"
+                         ,_0: _v4._0 * $Basics.toFloat(width) / totalTime
+                         ,_1: _v4._1};}
+               _U.badCase($moduleName,
+               "on line 18, column 31 to 63");
+            }();
+         };
+         var data = A2($List.map,
+         function ($) {
+            return scaleHorizontal(scaleVertical($));
+         },
+         ts.dataPoints);
+         var path = $Graphics$Collage.path(data);
+         var minusHalfWidth = $Basics.negate($Basics.toFloat(width) / 2);
+         var minusHalfHeight = $Basics.negate($Basics.toFloat(height) / 2);
+         var decentering = {ctor: "_Tuple2"
+                           ,_0: minusHalfWidth
+                           ,_1: minusHalfHeight};
+         var plot = $Graphics$Collage.move(decentering)($Graphics$Collage.traced(lineStyle)(path));
+         var collage = A3($Graphics$Collage.collage,
+         width,
+         height,
+         _L.fromArray([plot]));
+         return $Html.fromElement(collage);
+      }();
+   });
+   _elm.Plot.values = {_op: _op
+                      ,view: view};
+   return _elm.Plot.values;
+};
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
    "use strict";
@@ -13197,9 +13278,11 @@ Elm.Simulations.First.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
+   $Plot = Elm.Plot.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
+   $TimeSeries = Elm.TimeSeries.make(_elm),
    $Trace = Elm.Trace.make(_elm),
    $Vector = Elm.Vector.make(_elm);
    var pauseButton = F2(function (address,
@@ -13213,6 +13296,19 @@ Elm.Simulations.First.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
+   var energyTS = F2(function (proj,
+   trace) {
+      return function () {
+         var traceDatumToTSDatum = function (datum) {
+            return {_: {}
+                   ,dt: datum.dt
+                   ,value: proj(datum)};
+         };
+         return A2($List.foldl,
+         $Basics.flip($TimeSeries.append),
+         $TimeSeries.empty)($List.map(traceDatumToTSDatum)($List.reverse(trace)));
+      }();
+   });
    var view = F4(function (margin,
    dimmensions,
    address,
@@ -13220,13 +13316,6 @@ Elm.Simulations.First.make = function (_elm) {
       return function () {
          var $ = model.inner,
          trace = $.trace;
-         var plot = $List.map(function (_v0) {
-            return function () {
-               return {ctor: "_Tuple2"
-                      ,_0: _v0.time
-                      ,_1: _v0.totalEnergy};
-            }();
-         })(trace);
          var planetSystem = model.inner.innerModel;
          return _L.fromArray([A3($Planet.view,
                              margin,
@@ -13234,7 +13323,28 @@ Elm.Simulations.First.make = function (_elm) {
                              planetSystem)
                              ,A2(pauseButton,
                              address,
-                             model.paused)]);
+                             model.paused)
+                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             function (_) {
+                                return _.totalEnergy;
+                             },
+                             trace))
+                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             function (_) {
+                                return _.potentialEnergy;
+                             },
+                             trace))
+                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             function (_) {
+                                return _.kineticEnergy;
+                             },
+                             trace))
+                             ,A2($Html.p,
+                             _L.fromArray([]),
+                             _L.fromArray([$Html.text($Basics.toString(model.inner.innerModel))]))
+                             ,A2($Html.p,
+                             _L.fromArray([]),
+                             _L.fromArray([$Html.text($Basics.toString($List.head(model.inner.trace)))]))]);
       }();
    });
    var updateSystem = function (dt) {
@@ -13246,6 +13356,9 @@ Elm.Simulations.First.make = function (_elm) {
    dt,
    newState) {
       return function () {
+         var kineticEnergy = $Dynamics.kineticEnergy(newState);
+         var potentialEnergy = $Dynamics.potentialEnergy(newState);
+         var totalEnergy = potentialEnergy + kineticEnergy;
          var totalPastTime = $Maybe.withDefault(0.0)(A2($Maybe.map,
          function (_) {
             return _.time;
@@ -13254,8 +13367,10 @@ Elm.Simulations.First.make = function (_elm) {
          var totalTime = totalPastTime + dt;
          return {_: {}
                 ,dt: dt
+                ,kineticEnergy: kineticEnergy
+                ,potentialEnergy: potentialEnergy
                 ,time: totalTime
-                ,totalEnergy: $Dynamics.totalEnergy(newState)};
+                ,totalEnergy: totalEnergy};
       }();
    });
    var updateTraced = F2(function (dt,
@@ -13296,11 +13411,15 @@ Elm.Simulations.First.make = function (_elm) {
    var init = A2($Pause.active,
    $Trace.update,
    tracedSystem);
-   var TracedData = F3(function (a,
+   var TracedData = F5(function (a,
    b,
-   c) {
+   c,
+   d,
+   e) {
       return {_: {}
              ,dt: b
+             ,kineticEnergy: e
+             ,potentialEnergy: d
              ,time: a
              ,totalEnergy: c};
    });
@@ -13315,6 +13434,7 @@ Elm.Simulations.First.make = function (_elm) {
                                    ,traceProjection: traceProjection
                                    ,updateSystem: updateSystem
                                    ,view: view
+                                   ,energyTS: energyTS
                                    ,pauseButton: pauseButton};
    return _elm.Simulations.First.values;
 };
@@ -13902,8 +14022,7 @@ Elm.ThreeBodies.make = function (_elm) {
          _L.fromArray([header,problem]),
          A2($Basics._op["++"],
          firstSimulation,
-         _L.fromArray([$Html.text($Basics.toString(model))
-                      ,todo
+         _L.fromArray([todo
                       ,$Layout$Footer.view])));
          var system = model.inner;
          return A2($Html.div,
@@ -13929,7 +14048,7 @@ Elm.ThreeBodies.make = function (_elm) {
               ,_1: $Effects.none};
    var app = $StartApp.start({_: {}
                              ,init: init
-                             ,inputs: _L.fromArray([ticker(5.0e-2)])
+                             ,inputs: _L.fromArray([ticker(1.0e-2)])
                              ,update: update
                              ,view: view});
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",
@@ -14024,6 +14143,86 @@ Elm.Time.make = function (_elm) {
                       ,delay: delay
                       ,since: since};
    return _elm.Time.values;
+};
+Elm.TimeSeries = Elm.TimeSeries || {};
+Elm.TimeSeries.make = function (_elm) {
+   "use strict";
+   _elm.TimeSeries = _elm.TimeSeries || {};
+   if (_elm.TimeSeries.values)
+   return _elm.TimeSeries.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "TimeSeries",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var updateMaybe = F3(function ($new,
+   mappend,
+   old) {
+      return $Maybe.withDefault($new)($Maybe.map(mappend($new))(old));
+   });
+   var append = F2(function (timeSeries,
+   _v0) {
+      return function () {
+         return function () {
+            var $ = timeSeries,
+            totalTime = $.totalTime,
+            minValue = $.minValue,
+            maxValue = $.maxValue,
+            dataPoints = $.dataPoints;
+            var newTotalTime = A3(updateMaybe,
+            _v0.dt,
+            F2(function (x,y) {
+               return x + y;
+            }),
+            totalTime);
+            var newDataPoint = {ctor: "_Tuple2"
+                               ,_0: newTotalTime
+                               ,_1: _v0.value};
+            return _U.replace([["totalTime"
+                               ,$Maybe.Just(newTotalTime)]
+                              ,["minValue"
+                               ,$Maybe.Just(A3(updateMaybe,
+                               _v0.value,
+                               $Basics.min,
+                               minValue))]
+                              ,["maxValue"
+                               ,$Maybe.Just(A3(updateMaybe,
+                               _v0.value,
+                               $Basics.max,
+                               maxValue))]
+                              ,["dataPoints"
+                               ,A2($Basics._op["++"],
+                               dataPoints,
+                               _L.fromArray([newDataPoint]))]],
+            timeSeries);
+         }();
+      }();
+   });
+   var empty = {_: {}
+               ,dataPoints: _L.fromArray([])
+               ,maxValue: $Maybe.Nothing
+               ,minValue: $Maybe.Nothing
+               ,totalTime: $Maybe.Nothing};
+   var TimeSeries = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,dataPoints: d
+             ,maxValue: b
+             ,minValue: c
+             ,totalTime: a};
+   });
+   _elm.TimeSeries.values = {_op: _op
+                            ,empty: empty
+                            ,append: append
+                            ,TimeSeries: TimeSeries};
+   return _elm.TimeSeries.values;
 };
 Elm.Trace = Elm.Trace || {};
 Elm.Trace.make = function (_elm) {

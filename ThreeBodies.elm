@@ -34,7 +34,7 @@ app =
     { init = init
     , view = view
     , update = update
-    , inputs = [ticker 0.05]
+    , inputs = [ticker 0.01]
     }
 
 
@@ -71,7 +71,7 @@ view address model =
     header = h1 [] [ text "The three body problem" ]
     problem = p [] [ text problemDescription ]
     firstSimulation = First.view 50 (600, 400) address model
-    content = [ header, problem ] ++ firstSimulation ++ [ text (toString model), todo, Footer.view ]
+    content = [ header, problem ] ++ firstSimulation ++ [ todo, Footer.view ]
   in
     div [ Attributes.id "content" ] content
 
