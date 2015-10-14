@@ -1,6 +1,8 @@
 module Simulations.First where
 
 import Html exposing (..)
+import Graphics.Collage as Collage
+import Color
 
 import Html.Events as Events
 import Signal exposing (Address)
@@ -118,23 +120,14 @@ view margin dimmensions address model =
   in
     [ Planet.view margin dimmensions planetSystem
     , pauseButton address model.paused
-    , TimeSeries.view dimmensions <| trace.totalEnergy
-    , TimeSeries.view dimmensions <| trace.potentialEnergy
-    , TimeSeries.view dimmensions <| trace.kineticEnergy
+    , TimeSeries.viewMultiple
+      dimmensions
+      [ (Collage.solid Color.green, trace.totalEnergy)
+      , (Collage.solid Color.red, trace.kineticEnergy)
+      , (Collage.solid Color.blue, trace.potentialEnergy)
+      ]
     , p [] [ text << toString <| model.inner.innerModel ]
     ]
---
---
--- energyTS : (TracedData -> Float) -> List TracedData -> TimeSeries
--- energyTS proj trace =
---   let
---     traceDatumToTSDatum datum =
---       { dt = datum.dt, value = proj datum }
---   in
---     trace
---       |> List.reverse
---       |> List.map traceDatumToTSDatum
---       |> List.foldl (flip TimeSeries.append) TimeSeries.empty
 
 
 pauseButton : Address Action -> Bool -> Html

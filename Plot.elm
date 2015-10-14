@@ -1,11 +1,7 @@
 module Plot
-  ( dataToForm ) where
+  ( Range, Data, dataToForm, rangeMax, emptyRange ) where
 
-import Html exposing (Html)
 import Graphics.Collage as Collage
-import Color
-
-import Debug
 
 
 type alias Range =
@@ -34,3 +30,17 @@ dataToForm lineStyle dimmensions range data =
     decentering = (minusHalfWidth, minusHalfHeight)
   in
     Collage.move decentering << Collage.traced lineStyle <| path
+
+
+rangeMax : Range -> Range -> Range
+rangeMax a b =
+  { xMin = min a.xMin b.xMin
+  , xMax = max a.xMax b.xMax
+  , yMin = min a.yMin b.yMin
+  , yMax = max a.yMax b.yMax
+  }
+
+
+emptyRange : Range
+emptyRange =
+  { xMin = 0.0, xMax = 0.0, yMin = 0.0, yMax = 0.0 }

@@ -1,5 +1,5 @@
 module TimeSeries
-  ( TimeSeries, empty, append , view ) where
+  ( TimeSeries, empty, append , view, viewMultiple ) where
 
 import Html exposing (Html)
 
@@ -59,14 +59,39 @@ updateMaybe new mappend old =
 view : (Int, Int) -> TimeSeries -> Html
 view dimmensions ts =
   let
-    maxValue = Maybe.withDefault 0.0 ts.maxValue
-    minValue = Maybe.withDefault 0.0 ts.minValue
-    totalTime = Maybe.withDefault 0.0 ts.totalTime
     (width, height) = dimmensions
-    range = { xMin = 0.0, xMax = totalTime, yMin = minValue, yMax = maxValue }
-    data = ts.dataPoints
     lineStyle = Collage.solid Color.black
-    plotForm = Plot.dataToForm lineStyle dimmensions range data
+    plotForm = Plot.dataToForm lineStyle dimmensions (toRange ts) ts.dataPoints
     collage = Collage.collage width height [ plotForm ]
   in
     Html.fromElement collage
+
+
+viewMultiple : (Int, Int) -> List (Collage.LineStyle, TimeSeries) -> Html
+viewMultiple dimmensions styledTSs =
+  let
+    (width, height) = dimmensions
+    range =
+      List.map (toRange << snd) styledTSs
+        |> List.foldl Plot.rangeMax Plot.emptyRange
+    plotForms =
+      styledTSs
+        |> List.map
+          (\(lineStyle, ts) -> Plot.dataToForm lineStyle dimmensions range ts.dataPoints)
+  in
+    Html.fromElement <| Collage.collage width height plotForms
+
+
+toForm : (Int, Int) -> Plot.Range -> Collage.LineStyle -> TimeSeries -> Collage.Form
+toForm dimmensions range lineStyle ts =
+  Plot.dataToForm lineStyle dimmensions (toRange ts) ts.dataPoints
+
+
+toRange : TimeSeries -> Plot.Range
+toRange ts =
+  let
+    maxValue = Maybe.withDefault 0.0 ts.maxValue
+    minValue = Maybe.withDefault 0.0 ts.minValue
+    totalTime = Maybe.withDefault 0.0 ts.totalTime
+  in
+    { xMin = 0.0, xMax = totalTime, yMin = minValue, yMax = maxValue }
