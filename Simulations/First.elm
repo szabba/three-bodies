@@ -21,8 +21,7 @@ type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
 
 
 type alias TracedData =
-  { time : Float
-  , dt : Float
+  { dt : Float
   , totalEnergy : Float
   , potentialEnergy : Float
   , kineticEnergy : Float
@@ -88,14 +87,11 @@ updateTraced dt tracedModel =
 traceProjection : Maybe TracedData -> Time -> Planet.System -> TracedData
 traceProjection prevTrace dt newState =
   let
-    totalPastTime = Maybe.withDefault 0.0 <| Maybe.map .time prevTrace
-    totalTime = totalPastTime + dt
     potentialEnergy = Dynamics.potentialEnergy newState
     kineticEnergy = Dynamics.kineticEnergy newState
     totalEnergy = potentialEnergy + kineticEnergy
   in
-    { time = totalTime
-    , dt = dt
+    { dt = dt
     , totalEnergy = totalEnergy
     , potentialEnergy = potentialEnergy
     , kineticEnergy = kineticEnergy

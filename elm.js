@@ -13339,17 +13339,10 @@ Elm.Simulations.First.make = function (_elm) {
          var kineticEnergy = $Dynamics.kineticEnergy(newState);
          var potentialEnergy = $Dynamics.potentialEnergy(newState);
          var totalEnergy = potentialEnergy + kineticEnergy;
-         var totalPastTime = $Maybe.withDefault(0.0)(A2($Maybe.map,
-         function (_) {
-            return _.time;
-         },
-         prevTrace));
-         var totalTime = totalPastTime + dt;
          return {_: {}
                 ,dt: dt
                 ,kineticEnergy: kineticEnergy
                 ,potentialEnergy: potentialEnergy
-                ,time: totalTime
                 ,totalEnergy: totalEnergy};
       }();
    });
@@ -13391,17 +13384,15 @@ Elm.Simulations.First.make = function (_elm) {
    var init = A2($Pause.active,
    $Trace.update,
    tracedSystem);
-   var TracedData = F5(function (a,
+   var TracedData = F4(function (a,
    b,
    c,
-   d,
-   e) {
+   d) {
       return {_: {}
-             ,dt: b
-             ,kineticEnergy: e
-             ,potentialEnergy: d
-             ,time: a
-             ,totalEnergy: c};
+             ,dt: a
+             ,kineticEnergy: d
+             ,potentialEnergy: c
+             ,totalEnergy: b};
    });
    _elm.Simulations.First.values = {_op: _op
                                    ,TracedData: TracedData

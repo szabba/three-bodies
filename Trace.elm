@@ -7,7 +7,7 @@ module Trace
 type alias Trace t a m =
   { innerModel : m
   , update : a -> m -> m
-  , trace : List t
+  , trace : List t -- FIXME: Overspecific. The user can build a list in the projection if she needs to.
   , project : Maybe t -> a -> m -> t
   }
 
