@@ -5,8 +5,6 @@ import Html exposing (..)
 import Html.Events as Events
 import Signal exposing (Address)
 
-import Plot
-
 import Trace exposing (Trace)
 import Pause
 import Time exposing (Time)
@@ -120,9 +118,9 @@ view margin dimmensions address model =
   in
     [ Planet.view margin dimmensions planetSystem
     , pauseButton address model.paused
-    , Plot.view dimmensions <| energyTS .totalEnergy trace
-    , Plot.view dimmensions <| energyTS .potentialEnergy trace
-    , Plot.view dimmensions <| energyTS .kineticEnergy trace
+    , TimeSeries.view dimmensions <| energyTS .totalEnergy trace
+    , TimeSeries.view dimmensions <| energyTS .potentialEnergy trace
+    , TimeSeries.view dimmensions <| energyTS .kineticEnergy trace
     , p [] [ text << toString <| model.inner.innerModel ]
     , p [] [ text << toString << List.head <| model.inner.trace ]
     ]

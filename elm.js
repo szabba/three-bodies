@@ -12739,14 +12739,11 @@ Elm.Plot.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "Plot",
    $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
-   $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $TimeSeries = Elm.TimeSeries.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var dataToForm = F4(function (lineStyle,
    dimmensions,
    range,
@@ -12763,7 +12760,7 @@ Elm.Plot.make = function (_elm) {
                          ,_0: (_v0._0 - range.xMin) * $Basics.toFloat(width) / (range.xMax - range.xMin)
                          ,_1: (_v0._1 - range.yMin) * $Basics.toFloat(height) / (range.yMax - range.yMin)};}
                _U.badCase($moduleName,
-               "between lines 45 and 46");
+               "between lines 27 and 28");
             }();
          };
          var scaledData = A2($List.map,
@@ -12778,40 +12775,6 @@ Elm.Plot.make = function (_elm) {
          return $Graphics$Collage.move(decentering)($Graphics$Collage.traced(lineStyle)(path));
       }();
    });
-   var view = F2(function (dimmensions,
-   ts) {
-      return function () {
-         var lineStyle = $Graphics$Collage.solid($Color.black);
-         var data = ts.dataPoints;
-         var $ = dimmensions,
-         width = $._0,
-         height = $._1;
-         var totalTime = A2($Maybe.withDefault,
-         0.0,
-         ts.totalTime);
-         var minValue = A2($Maybe.withDefault,
-         0.0,
-         ts.minValue);
-         var maxValue = A2($Maybe.withDefault,
-         0.0,
-         ts.maxValue);
-         var range = {_: {}
-                     ,xMax: totalTime
-                     ,xMin: 0.0
-                     ,yMax: maxValue
-                     ,yMin: minValue};
-         var plotForm = A4(dataToForm,
-         lineStyle,
-         dimmensions,
-         range,
-         data);
-         var collage = A3($Graphics$Collage.collage,
-         width,
-         height,
-         _L.fromArray([plotForm]));
-         return $Html.fromElement(collage);
-      }();
-   });
    var Range = F4(function (a,
    b,
    c,
@@ -12823,7 +12786,7 @@ Elm.Plot.make = function (_elm) {
              ,yMin: d};
    });
    _elm.Plot.values = {_op: _op
-                      ,view: view};
+                      ,dataToForm: dataToForm};
    return _elm.Plot.values;
 };
 Elm.Result = Elm.Result || {};
@@ -13296,7 +13259,6 @@ Elm.Simulations.First.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Pause = Elm.Pause.make(_elm),
    $Planet = Elm.Planet.make(_elm),
-   $Plot = Elm.Plot.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
@@ -13342,17 +13304,17 @@ Elm.Simulations.First.make = function (_elm) {
                              ,A2(pauseButton,
                              address,
                              model.paused)
-                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
                              function (_) {
                                 return _.totalEnergy;
                              },
                              trace))
-                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
                              function (_) {
                                 return _.potentialEnergy;
                              },
                              trace))
-                             ,$Plot.view(dimmensions)(A2(energyTS,
+                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
                              function (_) {
                                 return _.kineticEnergy;
                              },
@@ -14174,10 +14136,48 @@ Elm.TimeSeries.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "TimeSeries",
    $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
+   $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Plot = Elm.Plot.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
+   var view = F2(function (dimmensions,
+   ts) {
+      return function () {
+         var lineStyle = $Graphics$Collage.solid($Color.black);
+         var data = ts.dataPoints;
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
+         var totalTime = A2($Maybe.withDefault,
+         0.0,
+         ts.totalTime);
+         var minValue = A2($Maybe.withDefault,
+         0.0,
+         ts.minValue);
+         var maxValue = A2($Maybe.withDefault,
+         0.0,
+         ts.maxValue);
+         var range = {_: {}
+                     ,xMax: totalTime
+                     ,xMin: 0.0
+                     ,yMax: maxValue
+                     ,yMin: minValue};
+         var plotForm = A4($Plot.dataToForm,
+         lineStyle,
+         dimmensions,
+         range,
+         data);
+         var collage = A3($Graphics$Collage.collage,
+         width,
+         height,
+         _L.fromArray([plotForm]));
+         return $Html.fromElement(collage);
+      }();
+   });
    var updateMaybe = F3(function ($new,
    mappend,
    old) {
@@ -14239,6 +14239,7 @@ Elm.TimeSeries.make = function (_elm) {
    _elm.TimeSeries.values = {_op: _op
                             ,empty: empty
                             ,append: append
+                            ,view: view
                             ,TimeSeries: TimeSeries};
    return _elm.TimeSeries.values;
 };
