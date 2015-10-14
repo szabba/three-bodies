@@ -13309,6 +13309,15 @@ Elm.Simulations.First.make = function (_elm) {
       return function () {
          var $ = model.inner,
          trace = $.trace;
+         var styledTSs = _L.fromArray([{ctor: "_Tuple2"
+                                       ,_0: $Graphics$Collage.solid($Color.green)
+                                       ,_1: trace.totalEnergy}
+                                      ,{ctor: "_Tuple2"
+                                       ,_0: $Graphics$Collage.solid($Color.red)
+                                       ,_1: trace.kineticEnergy}
+                                      ,{ctor: "_Tuple2"
+                                       ,_0: $Graphics$Collage.solid($Color.blue)
+                                       ,_1: trace.potentialEnergy}]);
          var planetSystem = model.inner.innerModel;
          return _L.fromArray([A3($Planet.view,
                              margin,
@@ -13317,17 +13326,9 @@ Elm.Simulations.First.make = function (_elm) {
                              ,A2(pauseButton,
                              address,
                              model.paused)
-                             ,A2($TimeSeries.viewMultiple,
+                             ,A2($TimeSeries.view,
                              dimmensions,
-                             _L.fromArray([{ctor: "_Tuple2"
-                                           ,_0: $Graphics$Collage.solid($Color.green)
-                                           ,_1: trace.totalEnergy}
-                                          ,{ctor: "_Tuple2"
-                                           ,_0: $Graphics$Collage.solid($Color.red)
-                                           ,_1: trace.kineticEnergy}
-                                          ,{ctor: "_Tuple2"
-                                           ,_0: $Graphics$Collage.solid($Color.blue)
-                                           ,_1: trace.potentialEnergy}]))
+                             styledTSs)
                              ,A2($Html.p,
                              _L.fromArray([]),
                              _L.fromArray([$Html.text($Basics.toString(model.inner.innerModel))]))]);
@@ -14138,7 +14139,6 @@ Elm.TimeSeries.make = function (_elm) {
    _L = _N.List.make(_elm),
    $moduleName = "TimeSeries",
    $Basics = Elm.Basics.make(_elm),
-   $Color = Elm.Color.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Html = Elm.Html.make(_elm),
    $List = Elm.List.make(_elm),
@@ -14174,7 +14174,7 @@ Elm.TimeSeries.make = function (_elm) {
       toRange(ts),
       ts.dataPoints);
    });
-   var viewMultiple = F2(function (dimmensions,
+   var view = F2(function (dimmensions,
    styledTSs) {
       return function () {
          var range = A2($List.foldl,
@@ -14194,7 +14194,7 @@ Elm.TimeSeries.make = function (_elm) {
                     range,
                     _v0._1.dataPoints);}
                _U.badCase($moduleName,
-               "on line 80, column 32 to 89");
+               "on line 70, column 32 to 89");
             }();
          })(styledTSs);
          var $ = dimmensions,
@@ -14204,25 +14204,6 @@ Elm.TimeSeries.make = function (_elm) {
          width,
          height,
          plotForms));
-      }();
-   });
-   var view = F2(function (dimmensions,
-   ts) {
-      return function () {
-         var lineStyle = $Graphics$Collage.solid($Color.black);
-         var plotForm = A4($Plot.dataToForm,
-         lineStyle,
-         dimmensions,
-         toRange(ts),
-         ts.dataPoints);
-         var $ = dimmensions,
-         width = $._0,
-         height = $._1;
-         var collage = A3($Graphics$Collage.collage,
-         width,
-         height,
-         _L.fromArray([plotForm]));
-         return $Html.fromElement(collage);
       }();
    });
    var updateMaybe = F3(function ($new,
@@ -14287,7 +14268,6 @@ Elm.TimeSeries.make = function (_elm) {
                             ,empty: empty
                             ,append: append
                             ,view: view
-                            ,viewMultiple: viewMultiple
                             ,TimeSeries: TimeSeries};
    return _elm.TimeSeries.values;
 };

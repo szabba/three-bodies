@@ -1,5 +1,5 @@
 module TimeSeries
-  ( TimeSeries, empty, append , view, viewMultiple ) where
+  ( TimeSeries, empty, append , view ) where
 
 import Html exposing (Html)
 
@@ -54,21 +54,11 @@ updateMaybe new mappend old =
     |> Maybe.withDefault new
 
 
-{-| Turns a TimeSeries into a plot with the given pixel dimmensions.
+{-| Turns a list of time series and line styles into a plot fiting into the
+given pixel dimmensions.
 -}
-view : (Int, Int) -> TimeSeries -> Html
-view dimmensions ts =
-  let
-    (width, height) = dimmensions
-    lineStyle = Collage.solid Color.black
-    plotForm = Plot.dataToForm lineStyle dimmensions (toRange ts) ts.dataPoints
-    collage = Collage.collage width height [ plotForm ]
-  in
-    Html.fromElement collage
-
-
-viewMultiple : (Int, Int) -> List (Collage.LineStyle, TimeSeries) -> Html
-viewMultiple dimmensions styledTSs =
+view : (Int, Int) -> List (Collage.LineStyle, TimeSeries) -> Html
+view dimmensions styledTSs =
   let
     (width, height) = dimmensions
     range =

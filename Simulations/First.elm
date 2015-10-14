@@ -117,15 +117,15 @@ view margin dimmensions address model =
   let
     planetSystem = model.inner.innerModel
     {trace} = model.inner
-  in
-    [ Planet.view margin dimmensions planetSystem
-    , pauseButton address model.paused
-    , TimeSeries.viewMultiple
-      dimmensions
+    styledTSs =
       [ (Collage.solid Color.green, trace.totalEnergy)
       , (Collage.solid Color.red, trace.kineticEnergy)
       , (Collage.solid Color.blue, trace.potentialEnergy)
       ]
+  in
+    [ Planet.view margin dimmensions planetSystem
+    , pauseButton address model.paused
+    , TimeSeries.view dimmensions styledTSs
     , p [] [ text << toString <| model.inner.innerModel ]
     ]
 
