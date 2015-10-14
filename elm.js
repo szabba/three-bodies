@@ -13276,19 +13276,6 @@ Elm.Simulations.First.make = function (_elm) {
          _L.fromArray([$Html.text(content)]));
       }();
    });
-   var energyTS = F2(function (proj,
-   trace) {
-      return function () {
-         var traceDatumToTSDatum = function (datum) {
-            return {_: {}
-                   ,dt: datum.dt
-                   ,value: proj(datum)};
-         };
-         return A2($List.foldl,
-         $Basics.flip($TimeSeries.append),
-         $TimeSeries.empty)($List.map(traceDatumToTSDatum)($List.reverse(trace)));
-      }();
-   });
    var view = F4(function (margin,
    dimmensions,
    address,
@@ -13304,27 +13291,12 @@ Elm.Simulations.First.make = function (_elm) {
                              ,A2(pauseButton,
                              address,
                              model.paused)
-                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
-                             function (_) {
-                                return _.totalEnergy;
-                             },
-                             trace))
-                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
-                             function (_) {
-                                return _.potentialEnergy;
-                             },
-                             trace))
-                             ,$TimeSeries.view(dimmensions)(A2(energyTS,
-                             function (_) {
-                                return _.kineticEnergy;
-                             },
-                             trace))
+                             ,$TimeSeries.view(dimmensions)(trace.totalEnergy)
+                             ,$TimeSeries.view(dimmensions)(trace.potentialEnergy)
+                             ,$TimeSeries.view(dimmensions)(trace.kineticEnergy)
                              ,A2($Html.p,
                              _L.fromArray([]),
-                             _L.fromArray([$Html.text($Basics.toString(model.inner.innerModel))]))
-                             ,A2($Html.p,
-                             _L.fromArray([]),
-                             _L.fromArray([$Html.text($Basics.toString($List.head(model.inner.trace)))]))]);
+                             _L.fromArray([$Html.text($Basics.toString(model.inner.innerModel))]))]);
       }();
    });
    var updateSystem = function (dt) {
@@ -13339,18 +13311,17 @@ Elm.Simulations.First.make = function (_elm) {
          var kineticEnergy = $Dynamics.kineticEnergy(newState);
          var potentialEnergy = $Dynamics.potentialEnergy(newState);
          var totalEnergy = potentialEnergy + kineticEnergy;
+         var toDataPoint = function (f) {
+            return {_: {}
+                   ,dt: dt
+                   ,value: f};
+         };
          return {_: {}
-                ,dt: dt
-                ,kineticEnergy: kineticEnergy
-                ,potentialEnergy: potentialEnergy
-                ,totalEnergy: totalEnergy};
+                ,dt: $TimeSeries.append(prevTrace.dt)(toDataPoint(dt))
+                ,kineticEnergy: $TimeSeries.append(prevTrace.kineticEnergy)(toDataPoint(kineticEnergy))
+                ,potentialEnergy: $TimeSeries.append(prevTrace.potentialEnergy)(toDataPoint(potentialEnergy))
+                ,totalEnergy: $TimeSeries.append(prevTrace.totalEnergy)(toDataPoint(totalEnergy))};
       }();
-   });
-   var updateTraced = F2(function (dt,
-   tracedModel) {
-      return $Trace.limitTrace(10)(A2($Trace.update,
-      dt,
-      tracedModel));
    });
    var update = $Pause.update;
    var planets = _L.fromArray([{_: {}
@@ -13377,10 +13348,18 @@ Elm.Simulations.First.make = function (_elm) {
    var system = {_: {}
                 ,bodies: planets
                 ,interaction: $Gravity.interaction};
-   var tracedSystem = A3($Trace.newWithProjection,
-   traceProjection,
-   updateSystem,
-   system);
+   var tracedSystem = function () {
+      var initialTrace = {_: {}
+                         ,dt: $TimeSeries.empty
+                         ,kineticEnergy: $TimeSeries.empty
+                         ,potentialEnergy: $TimeSeries.empty
+                         ,totalEnergy: $TimeSeries.empty};
+      return A4($Trace.$new,
+      initialTrace,
+      traceProjection,
+      updateSystem,
+      system);
+   }();
    var init = A2($Pause.active,
    $Trace.update,
    tracedSystem);
@@ -13401,11 +13380,9 @@ Elm.Simulations.First.make = function (_elm) {
                                    ,system: system
                                    ,planets: planets
                                    ,update: update
-                                   ,updateTraced: updateTraced
                                    ,traceProjection: traceProjection
                                    ,updateSystem: updateSystem
                                    ,view: view
-                                   ,energyTS: energyTS
                                    ,pauseButton: pauseButton};
    return _elm.Simulations.First.values;
 };
@@ -14269,28 +14246,26 @@ Elm.Trace.make = function (_elm) {
          var updatedModel = A2(update,
          action,
          innerModel);
-         var newTrace = A2($List._op["::"],
-         A3(project,
-         $List.head(trace),
+         var newTrace = A3(project,
+         trace,
          action,
-         updatedModel),
-         trace);
+         updatedModel);
          return _U.replace([["innerModel"
                             ,updatedModel]
                            ,["trace",newTrace]],
          model);
       }();
    });
-   var recordModel = F3(function (_v0,
-   _v1,
+   var recordModel = F3(function (trace,
+   _v0,
    innerModel) {
       return function () {
-         return function () {
-            return innerModel;
-         }();
+         return A2($Basics._op["++"],
+         trace,
+         _L.fromArray([innerModel]));
       }();
    });
-   var new$ = F4(function (initialTrace,
+   var $new = F4(function (initialTrace,
    projection,
    update,
    innerModel) {
@@ -14300,15 +14275,6 @@ Elm.Trace.make = function (_elm) {
              ,trace: initialTrace
              ,update: update};
    });
-   var newWithProjection = new$(_L.fromArray([]));
-   var newWithTrace = function (initialTrace) {
-      return A2(new$,
-      initialTrace,
-      recordModel);
-   };
-   var $new = A2(new$,
-   _L.fromArray([]),
-   recordModel);
    var Trace = F4(function (a,
    b,
    c,
@@ -14321,9 +14287,6 @@ Elm.Trace.make = function (_elm) {
    });
    _elm.Trace.values = {_op: _op
                        ,$new: $new
-                       ,newWithTrace: newWithTrace
-                       ,newWithProjection: newWithProjection
-                       ,new$: new$
                        ,recordModel: recordModel
                        ,update: update
                        ,limitTrace: limitTrace

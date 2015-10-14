@@ -21,10 +21,10 @@ type alias Model = Pause.Model Time (Trace TracedData Time Planet.System)
 
 
 type alias TracedData =
-  { dt : Float
-  , totalEnergy : Float
-  , potentialEnergy : Float
-  , kineticEnergy : Float
+  { dt : TimeSeries
+  , totalEnergy : TimeSeries
+  , potentialEnergy : TimeSeries
+  , kineticEnergy : TimeSeries
   }
 
 
@@ -41,7 +41,15 @@ init =
 
 tracedSystem : Trace TracedData Time Planet.System
 tracedSystem =
-  Trace.newWithProjection traceProjection updateSystem system
+  let
+    initialTrace =
+      { dt = TimeSeries.empty
+      , totalEnergy = TimeSeries.empty
+      , kineticEnergy = TimeSeries.empty
+      , potentialEnergy = TimeSeries.empty
+      }
+  in
+    Trace.new initialTrace traceProjection updateSystem system
 
 
 system : Planet.System
@@ -79,22 +87,18 @@ update =
   Pause.update
 
 
-updateTraced : Time -> Trace TracedData Time Planet.System -> Trace TracedData Time Planet.System
-updateTraced dt tracedModel =
-  Trace.limitTrace 10 <| Trace.update dt tracedModel
-
-
-traceProjection : Maybe TracedData -> Time -> Planet.System -> TracedData
+traceProjection : TracedData -> Time -> Planet.System -> TracedData
 traceProjection prevTrace dt newState =
   let
+    toDataPoint f = { dt = dt, value = f }
     potentialEnergy = Dynamics.potentialEnergy newState
     kineticEnergy = Dynamics.kineticEnergy newState
     totalEnergy = potentialEnergy + kineticEnergy
   in
-    { dt = dt
-    , totalEnergy = totalEnergy
-    , potentialEnergy = potentialEnergy
-    , kineticEnergy = kineticEnergy
+    { dt = TimeSeries.append prevTrace.dt <| toDataPoint dt
+    , totalEnergy = TimeSeries.append prevTrace.totalEnergy <| toDataPoint totalEnergy
+    , potentialEnergy = TimeSeries.append prevTrace.potentialEnergy <| toDataPoint potentialEnergy
+    , kineticEnergy = TimeSeries.append prevTrace.kineticEnergy <| toDataPoint kineticEnergy
     }
 
 
@@ -114,24 +118,23 @@ view margin dimmensions address model =
   in
     [ Planet.view margin dimmensions planetSystem
     , pauseButton address model.paused
-    , TimeSeries.view dimmensions <| energyTS .totalEnergy trace
-    , TimeSeries.view dimmensions <| energyTS .potentialEnergy trace
-    , TimeSeries.view dimmensions <| energyTS .kineticEnergy trace
+    , TimeSeries.view dimmensions <| trace.totalEnergy
+    , TimeSeries.view dimmensions <| trace.potentialEnergy
+    , TimeSeries.view dimmensions <| trace.kineticEnergy
     , p [] [ text << toString <| model.inner.innerModel ]
-    , p [] [ text << toString << List.head <| model.inner.trace ]
     ]
-
-
-energyTS : (TracedData -> Float) -> List TracedData -> TimeSeries
-energyTS proj trace =
-  let
-    traceDatumToTSDatum datum =
-      { dt = datum.dt, value = proj datum }
-  in
-    trace
-      |> List.reverse
-      |> List.map traceDatumToTSDatum
-      |> List.foldl (flip TimeSeries.append) TimeSeries.empty
+--
+--
+-- energyTS : (TracedData -> Float) -> List TracedData -> TimeSeries
+-- energyTS proj trace =
+--   let
+--     traceDatumToTSDatum datum =
+--       { dt = datum.dt, value = proj datum }
+--   in
+--     trace
+--       |> List.reverse
+--       |> List.map traceDatumToTSDatum
+--       |> List.foldl (flip TimeSeries.append) TimeSeries.empty
 
 
 pauseButton : Address Action -> Bool -> Html
