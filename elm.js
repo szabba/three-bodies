@@ -12747,10 +12747,45 @@ Elm.Plot.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $TimeSeries = Elm.TimeSeries.make(_elm);
+   var dataToForm = F4(function (lineStyle,
+   dimmensions,
+   range,
+   data) {
+      return function () {
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
+         var scaleBoth = function (_v0) {
+            return function () {
+               switch (_v0.ctor)
+               {case "_Tuple2":
+                  return {ctor: "_Tuple2"
+                         ,_0: (_v0._0 - range.xMin) * $Basics.toFloat(width) / (range.xMax - range.xMin)
+                         ,_1: (_v0._1 - range.yMin) * $Basics.toFloat(height) / (range.yMax - range.yMin)};}
+               _U.badCase($moduleName,
+               "between lines 45 and 46");
+            }();
+         };
+         var scaledData = A2($List.map,
+         scaleBoth,
+         data);
+         var path = $Graphics$Collage.path($List.map(scaleBoth)(data));
+         var minusHalfHeight = $Basics.negate($Basics.toFloat(height) / 2);
+         var minusHalfWidth = $Basics.negate($Basics.toFloat(width) / 2);
+         var decentering = {ctor: "_Tuple2"
+                           ,_0: minusHalfWidth
+                           ,_1: minusHalfHeight};
+         return $Graphics$Collage.move(decentering)($Graphics$Collage.traced(lineStyle)(path));
+      }();
+   });
    var view = F2(function (dimmensions,
    ts) {
       return function () {
          var lineStyle = $Graphics$Collage.solid($Color.black);
+         var data = ts.dataPoints;
+         var $ = dimmensions,
+         width = $._0,
+         height = $._1;
          var totalTime = A2($Maybe.withDefault,
          0.0,
          ts.totalTime);
@@ -12760,49 +12795,32 @@ Elm.Plot.make = function (_elm) {
          var maxValue = A2($Maybe.withDefault,
          0.0,
          ts.maxValue);
-         var $ = dimmensions,
-         width = $._0,
-         height = $._1;
-         var scaleVertical = function (_v0) {
-            return function () {
-               switch (_v0.ctor)
-               {case "_Tuple2":
-                  return {ctor: "_Tuple2"
-                         ,_0: _v0._0
-                         ,_1: (_v0._1 - minValue) * $Basics.toFloat(height) / (maxValue - minValue)};}
-               _U.badCase($moduleName,
-               "on line 17, column 29 to 87");
-            }();
-         };
-         var scaleHorizontal = function (_v4) {
-            return function () {
-               switch (_v4.ctor)
-               {case "_Tuple2":
-                  return {ctor: "_Tuple2"
-                         ,_0: _v4._0 * $Basics.toFloat(width) / totalTime
-                         ,_1: _v4._1};}
-               _U.badCase($moduleName,
-               "on line 18, column 31 to 63");
-            }();
-         };
-         var data = A2($List.map,
-         function ($) {
-            return scaleHorizontal(scaleVertical($));
-         },
-         ts.dataPoints);
-         var path = $Graphics$Collage.path(data);
-         var minusHalfWidth = $Basics.negate($Basics.toFloat(width) / 2);
-         var minusHalfHeight = $Basics.negate($Basics.toFloat(height) / 2);
-         var decentering = {ctor: "_Tuple2"
-                           ,_0: minusHalfWidth
-                           ,_1: minusHalfHeight};
-         var plot = $Graphics$Collage.move(decentering)($Graphics$Collage.traced(lineStyle)(path));
+         var range = {_: {}
+                     ,xMax: totalTime
+                     ,xMin: 0.0
+                     ,yMax: maxValue
+                     ,yMin: minValue};
+         var plotForm = A4(dataToForm,
+         lineStyle,
+         dimmensions,
+         range,
+         data);
          var collage = A3($Graphics$Collage.collage,
          width,
          height,
-         _L.fromArray([plot]));
+         _L.fromArray([plotForm]));
          return $Html.fromElement(collage);
       }();
+   });
+   var Range = F4(function (a,
+   b,
+   c,
+   d) {
+      return {_: {}
+             ,xMax: a
+             ,xMin: b
+             ,yMax: c
+             ,yMin: d};
    });
    _elm.Plot.values = {_op: _op
                       ,view: view};
