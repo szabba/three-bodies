@@ -54,6 +54,8 @@ updateMaybe new mappend old =
     |> Maybe.withDefault new
 
 
+{-| Turns a TimeSeries into a plot with the given pixel dimmensions.
+-}
 view : (Int, Int) -> TimeSeries -> Html
 view dimmensions ts =
   let
